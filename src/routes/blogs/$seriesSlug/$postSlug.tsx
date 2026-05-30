@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
+import { BlogPostPageView } from '../../../components/blog-post-page'
 import { getVisibleBlogPost } from '../../../lib/blog'
 
 export const Route = createFileRoute('/blogs/$seriesSlug/$postSlug')({
@@ -14,13 +15,6 @@ export const Route = createFileRoute('/blogs/$seriesSlug/$postSlug')({
 })
 
 function BlogPostPage() {
-  const post = Route.useLoaderData()
-
-  return (
-    <article>
-      <h1>{post.post_title}</h1>
-      <p>{post.series_title}</p>
-      <pre>{post.post_content}</pre>
-    </article>
-  )
+  const page = Route.useLoaderData()
+  return <BlogPostPageView page={page} />
 }

@@ -9,17 +9,32 @@ type BlogSeriesListItem = {
   first_post_slug: string | null
 }
 
-type BlogPostPageData = {
+type BlogSeriesStatus = 'ongoing' | 'completed' | 'archived'
+type BlogPostStatus = 'published' | 'archived'
+
+type VisibleBlogPostRecord = {
+  series_id: number
   series_slug: string
   series_title: string
   series_description: string
-  series_status: 'ongoing' | 'completed' | 'archived'
+  series_status: BlogSeriesStatus
   post_slug: string
   post_title: string
   post_summary: string
   post_content: string
   post_position: number
-  post_status: 'published' | 'archived'
+  post_status: BlogPostStatus
+}
+
+export type VisibleBlogPostChapter = {
+  slug: string
+  title: string
+  position: number
+  status: BlogPostStatus
+}
+
+export type VisibleBlogPostPageData = Omit<VisibleBlogPostRecord, 'series_id'> & {
+  chapters: VisibleBlogPostChapter[]
 }
 
 const VISIBLE_SERIES_STATUSES = ['ongoing', 'completed', 'archived'] as const
@@ -68,6 +83,7 @@ export const getVisibleBlogPost = createServerFn({ method: 'GET' })
       .prepare(
         `
           SELECT
+            blog_series.id AS series_id,
             blog_series.slug AS series_slug,
             blog_series.title AS series_title,
             blog_series.description AS series_description,
@@ -94,11 +110,33 @@ export const getVisibleBlogPost = createServerFn({ method: 'GET' })
         ...VISIBLE_SERIES_STATUSES,
         ...VISIBLE_POST_STATUSES,
       )
-      .first<BlogPostPageData>()
+      .first<VisibleBlogPostRecord>()
 
     if (!post) {
       throw notFound()
     }
 
-    return post
+    const { results: chapters } = await getDb()
+      .prepare(
+        `
+          SELECT
+            slug,
+            title,
+            position,
+            status
+          FROM blog_posts
+          WHERE series_id = ?
+            AND status IN (?, ?)
+          ORDER BY position ASC, id ASC
+        `,
+      )
+      .bind(post.series_id, ...VISIBLE_POST_STATUSES)
+      .all<VisibleBlogPostChapter>()
+
+    const { series_id: _, ...page } = post
+
+    return {
+      ...page,
+      chapters,
+    } satisfies VisibleBlogPostPageData
   })

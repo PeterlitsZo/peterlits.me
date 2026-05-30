@@ -1,5 +1,5 @@
-
-@import "tailwindcss";
+@import 'github-markdown-css/github-markdown.css';
+@import 'tailwindcss';
 
 * {
   box-sizing: border-box;
@@ -15,3 +15,21 @@ body {
   margin: 0;
 }
 
+.markdown-body {
+  background-color: transparent;
+  color: #000;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.markdown-body > :first-child {
+  margin-top: 0;
+}
+
+.markdown-body ol {
+  list-style-type: decimal;
+}
+
+.markdown-body ul {
+  list-style-type: disc;
+}
