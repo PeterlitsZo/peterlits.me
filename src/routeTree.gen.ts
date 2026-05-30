@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as BlogsSeriesSlugPostSlugRouteImport } from './routes/blogs/$seriesSlug/$postSlug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogsSeriesSlugPostSlugRoute = BlogsSeriesSlugPostSlugRouteImport.update({
+  id: '/blogs/$seriesSlug/$postSlug',
+  path: '/blogs/$seriesSlug/$postSlug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/blogs/$seriesSlug/$postSlug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/blogs/$seriesSlug/$postSlug'
+  id: '__root__' | '/' | '/blogs/$seriesSlug/$postSlug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BlogsSeriesSlugPostSlugRoute: typeof BlogsSeriesSlugPostSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blogs/$seriesSlug/$postSlug': {
+      id: '/blogs/$seriesSlug/$postSlug'
+      path: '/blogs/$seriesSlug/$postSlug'
+      fullPath: '/blogs/$seriesSlug/$postSlug'
+      preLoaderRoute: typeof BlogsSeriesSlugPostSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BlogsSeriesSlugPostSlugRoute: BlogsSeriesSlugPostSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
