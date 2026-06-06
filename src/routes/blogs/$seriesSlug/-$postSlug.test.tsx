@@ -10,8 +10,11 @@ import { cleanup, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
+  BlogPostChapterList,
   BlogPostMarkdown,
   BlogPostPageView,
+  BlogPostSiblingNavigation,
+  getSiblingPosts,
   getChapterItems,
 } from '../../../components/blog-post-page'
 
@@ -23,47 +26,18 @@ afterEach(() => {
   cleanup()
 })
 
-function renderBlogPostPage() {
+function renderWithRouter(component: () => React.JSX.Element) {
   const rootRoute = createRootRoute({
     component: () => <Outlet />,
-  })
-
-  const indexRoute = createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/',
-    component: () => <div>首页</div>,
   })
 
   const blogRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/blogs/$seriesSlug/$postSlug',
-    component: () => (
-      <BlogPostPageView
-        page={{
-          series_slug: 'tcp',
-          series_title: '我知道的 TCP',
-          series_description: '或者说，大家都知道的 TCP 知识',
-          series_status: 'ongoing',
-          post_slug: 'intro',
-          post_title: '起步',
-          post_summary: '从连接语义开始',
-          post_content: '## 起步\n\nTCP 是一种面向连接的协议。',
-          post_position: 1,
-          post_status: 'published',
-          chapters: [
-            {
-              slug: 'intro',
-              title: '起步',
-              position: 1,
-              status: 'published',
-            },
-          ],
-        }}
-      />
-    ),
+    component,
   })
 
-  const routeTree = rootRoute.addChildren([indexRoute, blogRoute])
+  const routeTree = rootRoute.addChildren([blogRoute])
   const router = createRouter({
     routeTree,
     history: createMemoryHistory({
@@ -71,7 +45,46 @@ function renderBlogPostPage() {
     }),
   })
 
-  render(<RouterProvider router={router} />)
+  return render(<RouterProvider router={router} />)
+}
+
+function renderBlogPostPage() {
+  renderWithRouter(() => (
+    <BlogPostPageView
+      page={{
+        series_slug: 'tcp',
+        series_title: '我知道的 TCP',
+        series_description: '或者说，大家都知道的 TCP 知识',
+        series_status: 'ongoing',
+        post_slug: 'intro',
+        post_title: 'Runtime',
+        post_summary: '从连接语义开始',
+        post_content: '## 起步\n\nTCP 是一种面向连接的协议。',
+        post_position: 2,
+        post_status: 'published',
+        chapters: [
+          {
+            slug: 'getting-started',
+            title: '起步',
+            position: 1,
+            status: 'published',
+          },
+          {
+            slug: 'intro',
+            title: 'Runtime',
+            position: 2,
+            status: 'published',
+          },
+          {
+            slug: 'timers',
+            title: '计时器',
+            position: 3,
+            status: 'published',
+          },
+        ],
+      }}
+    />
+  ))
 }
 
 describe('getChapterItems', () => {
@@ -102,6 +115,37 @@ describe('getChapterItems', () => {
         position: 2,
       },
     ])
+  })
+})
+
+describe('getSiblingPosts', () => {
+  it('returns the previous and next chapters around the current post', () => {
+    const siblings = getSiblingPosts(
+      [
+        {
+          slug: 'intro',
+          title: '起步',
+          position: 1,
+          status: 'published',
+        },
+        {
+          slug: 'runtime',
+          title: 'Runtime',
+          position: 2,
+          status: 'published',
+        },
+        {
+          slug: 'io',
+          title: 'I/O',
+          position: 3,
+          status: 'published',
+        },
+      ],
+      'runtime',
+    )
+
+    expect(siblings.previous?.slug).toBe('intro')
+    expect(siblings.next?.slug).toBe('io')
   })
 })
 
@@ -204,6 +248,84 @@ describe('BlogPostMarkdown', () => {
   })
 })
 
+describe('BlogPostChapterList', () => {
+  it('renders current, linked, and pending chapter items', async () => {
+    renderWithRouter(() => (
+      <BlogPostChapterList
+        chapterItems={[
+          {
+            kind: 'post',
+            slug: 'intro',
+            title: '起步',
+            position: 1,
+            isCurrent: true,
+          },
+          {
+            kind: 'post',
+            slug: 'handshake',
+            title: '三次握手',
+            position: 2,
+            isCurrent: false,
+          },
+          {
+            kind: 'pending',
+            position: 3,
+          },
+        ]}
+        seriesSlug="tcp"
+      />
+    ))
+
+    expect((await screen.findByText('起步')).closest('div')).toBeTruthy()
+    expect((await screen.findByRole('link', { name: '2三次握手' })).getAttribute('href')).toBe(
+      '/blogs/tcp/handshake',
+    )
+    expect(await screen.findByText('未完待续......')).toBeTruthy()
+  })
+})
+
+describe('BlogPostSiblingNavigation', () => {
+  it('uses a two-column grid so a single sibling card only occupies half width', async () => {
+    const { container } = renderWithRouter(() => (
+      <BlogPostSiblingNavigation
+        next={null}
+        previous={{
+          slug: 'getting-started',
+          title: '起步',
+          position: 1,
+          status: 'published',
+        }}
+        seriesSlug="tcp"
+      />
+    ))
+
+    const previousLink = await screen.findByRole('link', { name: '上一篇起步' })
+    const grid = previousLink.parentElement
+
+    expect(grid?.className).toContain('sm:grid-cols-2')
+    expect(previousLink.className).not.toContain('sm:col-span-2')
+  })
+
+  it('places a single next card on the right side on larger screens', async () => {
+    renderWithRouter(() => (
+      <BlogPostSiblingNavigation
+        next={{
+          slug: 'timers',
+          title: '计时器',
+          position: 3,
+          status: 'published',
+        }}
+        previous={null}
+        seriesSlug="tcp"
+      />
+    ))
+
+    const nextLink = await screen.findByRole('link', { name: '下一篇计时器' })
+
+    expect(nextLink.className).toContain('sm:col-start-2')
+  })
+})
+
 describe('BlogPostPageView', () => {
   it('renders a back link to the home page', async () => {
     renderBlogPostPage()
@@ -211,5 +333,15 @@ describe('BlogPostPageView', () => {
     const backLink = await screen.findByRole('link', { name: '返回' })
 
     expect(backLink.getAttribute('href')).toBe('/')
+  })
+
+  it('renders previous and next post navigation after the article content', async () => {
+    renderBlogPostPage()
+
+    const previousLink = await screen.findByRole('link', { name: '上一篇起步' })
+    const nextLink = await screen.findByRole('link', { name: '下一篇计时器' })
+
+    expect(previousLink.getAttribute('href')).toBe('/blogs/tcp/getting-started')
+    expect(nextLink.getAttribute('href')).toBe('/blogs/tcp/timers')
   })
 })
