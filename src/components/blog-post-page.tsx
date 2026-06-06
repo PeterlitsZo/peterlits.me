@@ -1,3 +1,4 @@
+import { ChevronLeft } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -57,6 +58,18 @@ export function BlogPostPageView({ page }: { page: VisibleBlogPostPageData }) {
   return (
     <div className="min-h-screen bg-gray-50 px-0 sm:px-6">
       <article className="mx-auto flex w-full max-w-[800px] flex-col sm:border-x border-gray-100 bg-white">
+        <div className="flex items-center gap-3 px-6 py-[18px]">
+          <Link
+            className="flex items-center gap-3 text-black no-underline transition-colors hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+            to="/"
+          >
+            <span className="flex size-6 items-center justify-center rounded-[4px] bg-gray-50">
+              <ChevronLeft aria-hidden="true" className="size-5" strokeWidth={1.75} />
+            </span>
+            <span className="text-[16px] leading-none font-normal">返回</span>
+          </Link>
+        </div>
+
         <header className="flex min-h-[300px] flex-col justify-end px-6 py-6">
           <h1 className="text-[40px] leading-none font-normal text-gray-950 sm:text-[48px]">
             {page.series_title}

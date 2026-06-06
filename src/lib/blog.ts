@@ -2,7 +2,7 @@ import { notFound } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { env } from 'cloudflare:workers'
 
-type BlogSeriesListItem = {
+export type VisibleBlogSeriesListItem = {
   slug: string
   title: string
   description: string
@@ -70,7 +70,7 @@ export const getVisibleBlogSeries = createServerFn({ method: 'GET' }).handler(
         ...VISIBLE_POST_STATUSES,
         ...VISIBLE_SERIES_STATUSES,
       )
-      .all<BlogSeriesListItem>()
+      .all<VisibleBlogSeriesListItem>()
 
     return results
   },

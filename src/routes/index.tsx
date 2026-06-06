@@ -1,5 +1,6 @@
-import { Link, createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
 
+import { HomePageView } from '../components/home-page'
 import { getVisibleBlogSeries } from '../lib/blog'
 
 export const Route = createFileRoute('/')({
@@ -10,25 +11,5 @@ export const Route = createFileRoute('/')({
 function Home() {
   const blogSeries = Route.useLoaderData()
 
-  return (
-    <ul>
-      {blogSeries.map((series) => (
-        <li key={series.slug}>
-          {series.first_post_slug ? (
-            <Link
-              to="/blogs/$seriesSlug/$postSlug"
-              params={{
-                seriesSlug: series.slug,
-                postSlug: series.first_post_slug,
-              }}
-            >
-              {series.title}
-            </Link>
-          ) : (
-            series.title
-          )}
-        </li>
-      ))}
-    </ul>
-  )
+  return <HomePageView blogSeries={blogSeries} />
 }
