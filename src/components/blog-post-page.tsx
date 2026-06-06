@@ -82,7 +82,7 @@ export function BlogPostChapterList({
   seriesSlug: string
 }) {
   return (
-    <div className="flex w-full max-w-[500px] flex-col items-start gap-1.5 overflow-hidden rounded-[12px] bg-gray-50 p-3">
+    <div className="flex w-full max-w-[500px] flex-col items-start gap-1 overflow-hidden rounded-[12px] bg-gray-50 p-1.5">
       {chapterItems.map((item) => {
         const isCurrent = item.kind === 'post' && item.isCurrent
         const numberClassName = isCurrent
@@ -118,7 +118,7 @@ export function BlogPostChapterList({
         if (item.kind === 'post' && !item.isCurrent) {
           return (
             <Link
-              className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] px-1.5 py-1.5 no-underline"
+              className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] px-3 py-2 no-underline hover:bg-gray-100"
               key={item.slug}
               params={{
                 postSlug: item.slug,
@@ -133,7 +133,7 @@ export function BlogPostChapterList({
 
         return (
           <div
-            className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] px-1.5 py-1.5"
+            className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] px-3 py-2"
             key={item.kind === 'post' ? item.slug : 'pending'}
           >
             {content}
