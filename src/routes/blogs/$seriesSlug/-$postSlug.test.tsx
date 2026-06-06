@@ -130,6 +130,78 @@ describe('BlogPostMarkdown', () => {
     expect(screen.getByText('TCP 是一种面向连接的协议。')).toBeTruthy()
     expect(screen.getByText('nc -l4 -p 12345')).toBeTruthy()
   })
+
+  it('renders definition lists as dl, dt, and dd elements', () => {
+    const { container } = render(
+      <BlogPostMarkdown
+        content={[
+          'TCP',
+          ': 面向连接的传输协议',
+          '',
+          'UDP',
+          ': 无连接的传输协议',
+        ].join('\n')}
+      />,
+    )
+
+    const definitionList = container.querySelector('dl')
+
+    expect(definitionList).toBeTruthy()
+    expect(definitionList?.querySelector('dt')?.textContent).toBe('TCP')
+    expect(definitionList?.querySelector('dd')?.textContent).toBe(
+      '面向连接的传输协议',
+    )
+    expect(
+      Array.from(definitionList?.querySelectorAll('dt') ?? []).map(
+        (node) => node.textContent,
+      ),
+    ).toEqual(['TCP', 'UDP'])
+    expect(
+      Array.from(definitionList?.querySelectorAll('dd') ?? []).map(
+        (node) => node.textContent,
+      ),
+    ).toEqual(['面向连接的传输协议', '无连接的传输协议'])
+  })
+
+  it('merges multiple definitions for one term into a single dd', () => {
+    const { container } = render(
+      <BlogPostMarkdown
+        content={[
+          '`block_on`',
+          ': 在当前线程上运行一个 future，堵塞直到它完成，并返回解析结果。这个 future 生成的任何其他 task 也都会在对应的运行时上执行。',
+          ': 对于本地线程运行时而言，只有 `Runtime::block_on` 方法能驱动 I/O 和计时器驱动。而 `Handle::block_on` 方法无法驱动它们。',
+          ': 这个方法会在以下情况下 panic：',
+          ': 1. 提供的 future 本身 panic 了。',
+          ': 2. 如果它在一个异步上下文中被调用。',
+          ': 3. 一个计时器 future 在已被关闭的运行时上运行。',
+        ].join('\n')}
+      />,
+    )
+
+    const definitionList = container.querySelector('dl')
+    const definitionTerms = definitionList?.querySelectorAll('dt') ?? []
+    const definitionDetails = definitionList?.querySelectorAll('dd') ?? []
+    const paragraphs = definitionDetails[0]?.querySelectorAll('p') ?? []
+    const orderedList = definitionDetails[0]?.querySelector('ol')
+
+    expect(definitionTerms).toHaveLength(1)
+    expect(definitionDetails).toHaveLength(1)
+    expect(definitionTerms[0]?.textContent).toBe('block_on')
+    expect(paragraphs).toHaveLength(3)
+    expect(paragraphs[0]?.textContent).toContain('在当前线程上运行一个 future')
+    expect(paragraphs[1]?.textContent).toContain('Runtime::block_on')
+    expect(paragraphs[2]?.textContent).toBe('这个方法会在以下情况下 panic：')
+    expect(orderedList).toBeTruthy()
+    expect(
+      Array.from(orderedList?.querySelectorAll('li') ?? []).map(
+        (node) => node.textContent,
+      ),
+    ).toEqual([
+      '提供的 future 本身 panic 了。',
+      '如果它在一个异步上下文中被调用。',
+      '一个计时器 future 在已被关闭的运行时上运行。',
+    ])
+  })
 })
 
 describe('BlogPostPageView', () => {

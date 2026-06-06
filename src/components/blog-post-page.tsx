@@ -7,6 +7,7 @@ import type {
   VisibleBlogPostChapter,
   VisibleBlogPostPageData,
 } from '../lib/blog'
+import remarkDefinitionList from '../lib/remark-definition-list'
 
 type ChapterItem =
   | {
@@ -45,7 +46,11 @@ export function getChapterItems(
 }
 
 export function BlogPostMarkdown({ content }: { content: string }) {
-  return <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+  return (
+    <ReactMarkdown remarkPlugins={[remarkGfm, remarkDefinitionList]}>
+      {content}
+    </ReactMarkdown>
+  )
 }
 
 export function BlogPostPageView({ page }: { page: VisibleBlogPostPageData }) {
