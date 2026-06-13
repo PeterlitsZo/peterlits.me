@@ -7,7 +7,7 @@ import {
   createRouter,
   createMemoryHistory,
 } from '@tanstack/react-router'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { HomePageView } from './home-page'
@@ -128,6 +128,30 @@ describe('HomePageView', () => {
     expect(screen.getByLabelText('密码')).toBeTruthy()
   })
 
+  it('closes the login modal when the overlay is clicked', async () => {
+    renderHomePage()
+
+    const loginButton = await screen.findByRole('button', { name: '登录' })
+    loginButton.click()
+
+    const overlay = await screen.findByTestId('login-modal-overlay')
+    fireEvent.click(overlay)
+
+    expect(screen.queryByRole('heading', { name: '登录' })).toBeNull()
+  })
+
+  it('closes the login modal when Escape is pressed', async () => {
+    renderHomePage()
+
+    const loginButton = await screen.findByRole('button', { name: '登录' })
+    loginButton.click()
+
+    await screen.findByRole('heading', { name: '登录' })
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(screen.queryByRole('heading', { name: '登录' })).toBeNull()
+  })
+
   it('shows the avatar menu for authenticated viewers', async () => {
     renderHomePage({
       viewer: {
@@ -143,13 +167,13 @@ describe('HomePageView', () => {
     })
     avatarButton.click()
 
-    expect(await screen.findByText('Peter')).toBeTruthy()
-    expect(screen.getByRole('button', { name: '登出' })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: '登出' })).toBeTruthy()
+    expect(screen.queryByText('Peter')).toBeNull()
   })
 
   it('renders draft markers for draft series', async () => {
     renderHomePage()
 
-    expect(await screen.findByText('Draft')).toBeTruthy()
+    expect(await screen.findByText('草稿')).toBeTruthy()
   })
 })

@@ -19,7 +19,7 @@ import {
   getSiblingPosts,
 } from '../../../components/blog-post-page'
 import { SiteShell } from '../../../components/site-shell'
-import { buildBlogPostChapterTree } from '../../../lib/blog'
+import { buildBlogPostChapterTree } from '../../../lib/blog-models'
 
 beforeAll(() => {
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
@@ -634,7 +634,9 @@ describe('BlogPostPageView', () => {
   it('renders draft markers for the series, current post, and draft chapters', async () => {
     renderBlogPostPage()
 
-    expect(await screen.findAllByText('Draft')).toHaveLength(4)
+    expect(await screen.findByText('系列草稿')).toBeTruthy()
+    expect(screen.getByText('文章草稿')).toBeTruthy()
+    expect(screen.getAllByText('草稿')).toHaveLength(2)
   })
 
   it('keeps the login button visible for anonymous readers inside the shared shell', async () => {
@@ -677,7 +679,7 @@ describe('BlogPostPageView', () => {
     })
     avatarButton.click()
 
-    expect(await screen.findByText('Reviewer')).toBeTruthy()
-    expect(screen.getByRole('button', { name: '登出' })).toBeTruthy()
+    expect(await screen.findByRole('button', { name: '登出' })).toBeTruthy()
+    expect(screen.queryByText('Reviewer')).toBeNull()
   })
 })

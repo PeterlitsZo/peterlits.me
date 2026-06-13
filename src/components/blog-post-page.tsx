@@ -8,7 +8,7 @@ import type {
   BlogSeriesStatus,
   VisibleBlogPostChapterNode,
   VisibleBlogPostPageData,
-} from '../lib/blog'
+} from '../lib/blog-models'
 import remarkDefinitionList from '../lib/remark-definition-list'
 
 type FlatChapter = Omit<VisibleBlogPostChapterNode, 'children'>
@@ -69,24 +69,26 @@ function buildChapterItems(
   })
 }
 
-function DraftBadge() {
+function DraftBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-[#FFF7ED] px-2 py-1 text-[12px] leading-none font-medium text-[#C2410C]">
-      Draft
+    <span className="inline-flex items-center rounded-full bg-[#F2F4F7] px-2 py-1 text-[12px] leading-none font-medium text-[#475467]">
+      {children}
     </span>
   )
 }
 
 function StatusBadge({
+  label,
   status,
 }: {
+  label: string
   status: BlogPostStatus | BlogSeriesStatus
 }) {
   if (status !== 'draft') {
     return null
   }
 
-  return <DraftBadge />
+  return <DraftBadge>{label}</DraftBadge>
 }
 
 export function getChapterItems(
@@ -169,7 +171,7 @@ export function BlogPostChapterList({
                 className={`flex min-w-0 items-center gap-2 ${titleBaseClassName} ${titleClassName}`}
               >
                 <span className="truncate">{item.title}</span>
-                <StatusBadge status={item.status} />
+                <StatusBadge label="草稿" status={item.status} />
               </span>
             </>
           ) : (
@@ -299,7 +301,7 @@ export function BlogPostPageView({ page }: { page: VisibleBlogPostPageData }) {
             <h1 className="text-[40px] leading-none font-normal text-gray-950 sm:text-[48px]">
               {page.series_title}
             </h1>
-            <StatusBadge status={page.series_status} />
+            <StatusBadge label="系列草稿" status={page.series_status} />
           </div>
           <p className="mt-2 text-[24px] leading-none font-normal text-gray-600">
             {page.series_description}
@@ -311,7 +313,7 @@ export function BlogPostPageView({ page }: { page: VisibleBlogPostPageData }) {
             <h2 className="m-0 text-[32px] leading-none font-normal text-black">
               {page.post_title}
             </h2>
-            <StatusBadge status={page.post_status} />
+            <StatusBadge label="文章草稿" status={page.post_status} />
           </div>
           <BlogPostChapterList
             chapterItems={chapterItems}

@@ -1,7 +1,3 @@
-import bcrypt from 'bcryptjs'
-import { env } from 'cloudflare:workers'
-import { jwtVerify, SignJWT } from 'jose'
-
 export type AuthRole = 'owner' | 'reviewer'
 
 export type Viewer = {
@@ -16,12 +12,12 @@ export type ViewerBlogVisibility = {
   postStatuses: Array<'draft' | 'published' | 'archived'>
 }
 
-type UserRecord = Viewer & {
-  passwordHash: string
-}
-
 export const AUTH_COOKIE_NAME = 'auth_token'
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7
+
+export function isAuthRole(role: unknown): role is AuthRole {
+  return role === 'owner' || role === 'reviewer'
+}
 
 export function parseCookieHeader(cookieHeader: string) {
   if (!cookieHeader.trim()) {
@@ -30,7 +26,7 @@ export function parseCookieHeader(cookieHeader: string) {
 
   return cookieHeader.split(';').reduce<Record<string, string>>((cookies, pair) => {
     const [rawName, ...rawValue] = pair.split('=')
-    const name = rawName?.trim()
+    const name = rawName.trim()
 
     if (!name) {
       return cookies
@@ -44,7 +40,7 @@ export function parseCookieHeader(cookieHeader: string) {
 export function getViewerBlogVisibility(
   viewer: Viewer | null,
 ): ViewerBlogVisibility {
-  if (!viewer) {
+  if (!viewer || !isAuthRole(viewer.role)) {
     return {
       seriesStatuses: ['ongoing', 'completed', 'archived'],
       postStatuses: ['published', 'archived'],
@@ -102,41 +98,6 @@ export function clearAuthCookie(secure = true) {
   return parts.join('; ')
 }
 
-function getJwtSecret() {
-  const secret = env.AUTH_JWT_SECRET?.trim()
-
-  if (!secret) {
-    throw new Error('AUTH_JWT_SECRET is not configured')
-  }
-
-  return new TextEncoder().encode(secret)
-}
-
-export async function signAuthToken(viewer: Viewer) {
-  return await new SignJWT({
-    role: viewer.role,
-    username: viewer.username,
-  })
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('7d')
-    .setSubject(String(viewer.id))
-    .sign(getJwtSecret())
-}
-
-export async function verifyAuthToken(token: string) {
-  const result = await jwtVerify(token, getJwtSecret())
-  return result.payload
-}
-
-export async function hashPassword(password: string) {
-  return await bcrypt.hash(password, 10)
-}
-
-export async function verifyPassword(password: string, passwordHash: string) {
-  return await bcrypt.compare(password, passwordHash)
-}
-
 export function validateLoginInput(data: unknown) {
   if (!data || typeof data !== 'object') {
     throw new Error('用户名或密码错误')
@@ -154,44 +115,4 @@ export function validateLoginInput(data: unknown) {
     username,
     password,
   }
-}
-
-export async function loginWithPassword({
-  db,
-  password,
-  username,
-}: {
-  db: D1Database
-  username: string
-  password: string
-}) {
-  const user = await db
-    .prepare(
-      `
-        SELECT
-          id,
-          username,
-          display_name AS displayName,
-          role,
-          password_hash AS passwordHash
-        FROM users
-        WHERE username = ?
-        LIMIT 1
-      `,
-    )
-    .bind(username)
-    .first<UserRecord>()
-
-  if (!user) {
-    throw new Error('用户名或密码错误')
-  }
-
-  const passwordMatches = await verifyPassword(password, user.passwordHash)
-
-  if (!passwordMatches) {
-    throw new Error('用户名或密码错误')
-  }
-
-  const { passwordHash: _, ...viewer } = user
-  return viewer
 }

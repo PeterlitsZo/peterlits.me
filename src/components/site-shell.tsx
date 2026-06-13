@@ -38,7 +38,14 @@ function LoginModal({
   onSubmit: (formData: FormData) => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/20 px-4 pt-24">
+    <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-24">
+      <button
+        aria-label="关闭登录弹窗遮罩"
+        className="absolute inset-0 bg-black/20"
+        data-testid="login-modal-overlay"
+        onClick={onClose}
+        type="button"
+      />
       <div className="relative w-full max-w-[320px] rounded-2xl border border-[#C9D2DE] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.16)]">
         <button
           aria-label="关闭登录弹窗"
@@ -121,6 +128,25 @@ export function SiteShell({
     setIsPending(false)
   }, [viewer])
 
+  useEffect(() => {
+    if (!isLoginModalOpen) {
+      return
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setErrorMessage(null)
+        setIsLoginModalOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [isLoginModalOpen])
+
   async function refreshViewerState() {
     await router.invalidate()
   }
@@ -172,9 +198,6 @@ export function SiteShell({
 
               {isUserMenuOpen ? (
                 <div className="absolute right-0 top-9 flex w-[162px] flex-col gap-1 rounded-[14px] border border-[#CBD5E1] bg-white p-3 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
-                  <div className="rounded-[8px] bg-[#F2F4F7] px-3 py-2 text-[16px] leading-none text-black">
-                    {viewer.displayName}
-                  </div>
                   <button
                     className="rounded-[8px] border-0 bg-transparent px-3 py-2 text-left text-[16px] leading-none text-black hover:bg-gray-50"
                     disabled={isPending}

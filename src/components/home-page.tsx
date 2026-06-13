@@ -1,11 +1,11 @@
 import { Link } from '@tanstack/react-router'
 
-import type { VisibleBlogSeriesListItem } from '../lib/blog'
+import type { VisibleBlogSeriesListItem } from '../lib/blog-models'
 
 function DraftBadge() {
   return (
-    <span className="inline-flex items-center rounded-full bg-[#FFF7ED] px-2 py-1 text-[12px] leading-none font-medium text-[#C2410C]">
-      Draft
+    <span className="inline-flex items-center rounded-full bg-[#F2F4F7] px-2 py-1 text-[12px] leading-none font-medium text-[#475467]">
+      草稿
     </span>
   )
 }
