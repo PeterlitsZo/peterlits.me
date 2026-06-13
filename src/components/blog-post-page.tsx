@@ -312,12 +312,6 @@ export function BlogPostPageView({ page }: { page: VisibleBlogPostPageData }) {
         </header>
 
         <section className="p-6">
-          <div className="mb-6 flex items-center gap-3">
-            <h2 className="m-0 text-[32px] leading-none font-normal text-black">
-              {page.post_title}
-            </h2>
-            <StatusBadge label="文章草稿" status={page.post_status} />
-          </div>
           <BlogPostChapterList
             chapterItems={chapterItems}
             seriesSlug={page.series_slug}

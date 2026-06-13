@@ -636,11 +636,10 @@ describe('BlogPostPageView', () => {
     )
   })
 
-  it('renders draft markers for the series, current post, and draft chapters', async () => {
+  it('renders draft markers for the series and draft chapters', async () => {
     renderBlogPostPage()
 
     expect(await screen.findByText('系列草稿')).toBeTruthy()
-    expect(screen.getByText('文章草稿')).toBeTruthy()
     expect(screen.getAllByText('草稿')).toHaveLength(2)
   })
 

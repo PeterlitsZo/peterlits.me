@@ -177,7 +177,9 @@ function createDefinitionBlocks(definitionLines: MarkdownNode[][]) {
           break
         }
 
-        items.push(createListItemNode(pruneEmptyTextNodes(nextOrderedItem.children)))
+        items.push(
+          createListItemNode(pruneEmptyTextNodes(nextOrderedItem.children)),
+        )
         index += 1
       }
 
@@ -210,7 +212,9 @@ function createDefinitionBlocks(definitionLines: MarkdownNode[][]) {
           break
         }
 
-        items.push(createListItemNode(pruneEmptyTextNodes(nextUnorderedItem.children)))
+        items.push(
+          createListItemNode(pruneEmptyTextNodes(nextUnorderedItem.children)),
+        )
         index += 1
       }
 

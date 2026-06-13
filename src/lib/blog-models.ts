@@ -52,9 +52,7 @@ function sortChapterNodes(
   nodes: VisibleBlogPostChapterNode[],
 ): VisibleBlogPostChapterNode[] {
   return [...nodes]
-    .sort(
-      (left, right) => left.position - right.position || left.id - right.id,
-    )
+    .sort((left, right) => left.position - right.position || left.id - right.id)
     .map((node) => ({
       ...node,
       children: sortChapterNodes(node.children),

@@ -24,17 +24,19 @@ export function parseCookieHeader(cookieHeader: string) {
     return {}
   }
 
-  return cookieHeader.split(';').reduce<Record<string, string>>((cookies, pair) => {
-    const [rawName, ...rawValue] = pair.split('=')
-    const name = rawName.trim()
+  return cookieHeader
+    .split(';')
+    .reduce<Record<string, string>>((cookies, pair) => {
+      const [rawName, ...rawValue] = pair.split('=')
+      const name = rawName.trim()
 
-    if (!name) {
+      if (!name) {
+        return cookies
+      }
+
+      cookies[name] = rawValue.join('=').trim()
       return cookies
-    }
-
-    cookies[name] = rawValue.join('=').trim()
-    return cookies
-  }, {})
+    }, {})
 }
 
 export function getViewerBlogVisibility(

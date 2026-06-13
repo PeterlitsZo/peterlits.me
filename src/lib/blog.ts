@@ -3,9 +3,7 @@ import { createServerFn } from '@tanstack/react-start'
 import { env } from 'cloudflare:workers'
 
 import { getViewerBlogVisibility } from './auth'
-import {
-  buildBlogPostChapterTree,
-} from './blog-models'
+import { buildBlogPostChapterTree } from './blog-models'
 import type {
   VisibleBlogPostChapterRecord,
   VisibleBlogPostPageData,

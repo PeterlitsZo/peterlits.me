@@ -12,9 +12,5 @@
   "routerOnly": false,
   "version": 1,
   "framework": "react",
-  "chosenAddOns": [
-    "eslint",
-    "cloudflare",
-    "compiler"
-  ]
+  "chosenAddOns": ["eslint", "cloudflare", "compiler"]
 }
