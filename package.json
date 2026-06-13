@@ -28,11 +28,14 @@
     "bcryptjs": "^3.0.3",
     "github-markdown-css": "^5.9.0",
     "jose": "^6.2.3",
+    "katex": "^0.17.0",
     "lucide-react": "^0.545.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-markdown": "^10.1.0",
+    "rehype-katex": "^7.0.1",
     "remark-gfm": "^4.0.1",
+    "remark-math": "^6.0.0",
     "tailwindcss": "^4.1.18"
   },
   "devDependencies": {

@@ -385,6 +385,25 @@ describe('BlogPostMarkdown', () => {
     expect(screen.getByText('nc -l4 -p 12345')).toBeTruthy()
   })
 
+  it('renders inline and block math expressions with katex output', () => {
+    const { container } = render(
+      <BlogPostMarkdown
+        content={[
+          '欧拉恒等式 $e^{i\\pi} + 1 = 0$ 很经典。',
+          '',
+          '$$',
+          '\\int_0^1 x^2 dx = \\frac{1}{3}',
+          '$$',
+        ].join('\n')}
+      />,
+    )
+
+    expect(container.querySelector('.katex')).toBeTruthy()
+    expect(container.querySelector('.katex-display')).toBeTruthy()
+    expect(container.textContent).not.toContain('$e^{i\\pi} + 1 = 0$')
+    expect(container.textContent).not.toContain('$$')
+  })
+
   it('renders definition lists as dl, dt, and dd elements', () => {
     const { container } = render(
       <BlogPostMarkdown

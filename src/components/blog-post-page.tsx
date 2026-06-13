@@ -1,7 +1,9 @@
 import { ChevronLeft } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 import ReactMarkdown from 'react-markdown'
+import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
 
 import type {
   BlogPostStatus,
@@ -134,7 +136,10 @@ export function getSiblingPosts(
 
 export function BlogPostMarkdown({ content }: { content: string }) {
   return (
-    <ReactMarkdown remarkPlugins={[remarkGfm, remarkDefinitionList]}>
+    <ReactMarkdown
+      rehypePlugins={[rehypeKatex]}
+      remarkPlugins={[remarkGfm, remarkMath, remarkDefinitionList]}
+    >
       {content}
     </ReactMarkdown>
   )
