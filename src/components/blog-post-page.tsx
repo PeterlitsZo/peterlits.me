@@ -120,35 +120,37 @@ export function BlogPostChapterList({
   chapterItems: ChapterItem[]
   seriesSlug: string
 }) {
+  const numberBaseClassName =
+    'flex size-[22px] shrink-0 items-center justify-center rounded-[8px] text-[13px] leading-none font-normal tracking-[-0.65px] text-white'
+  const titleBaseClassName =
+    'shrink-0 whitespace-nowrap text-[20px] leading-[24px] font-normal'
+
   return (
-    <div className="flex w-full max-w-[500px] flex-col items-start gap-1 overflow-hidden rounded-[12px] bg-gray-50 p-1.5">
+    <div className="flex w-full max-w-[500px] flex-col items-start gap-1.5 overflow-hidden rounded-[12px] bg-gray-50 p-3">
       {chapterItems.map((item) => {
         const isCurrent = item.kind === 'post' && item.isCurrent
         const numberClassName = isCurrent
           ? 'bg-gray-950 text-white'
-          : 'bg-gray-600 text-white'
-        const titleClassName = isCurrent ? 'text-gray-950' : 'text-gray-600'
+          : 'bg-gray-500 text-white'
+        const titleClassName = isCurrent ? 'text-gray-950' : 'text-gray-500'
+        const paddingLeft = `${6 + item.depth * 26}px`
 
         const content =
           item.kind === 'post' ? (
             <>
-              <span
-                className={`flex min-w-5 shrink-0 items-center justify-center rounded-[12px] px-1.5 text-[14px] leading-5 ${numberClassName}`}
-              >
+              <span className={`${numberBaseClassName} ${numberClassName}`}>
                 {item.label}
               </span>
-              <span
-                className={`shrink-0 whitespace-nowrap text-[20px] leading-[24px] font-normal ${titleClassName}`}
-              >
+              <span className={`${titleBaseClassName} ${titleClassName}`}>
                 {item.title}
               </span>
             </>
           ) : (
             <>
-              <span className="flex min-w-5 shrink-0 items-center justify-center rounded-[12px] bg-gray-600 px-1.5 text-[14px] leading-5 text-white">
+              <span className={`${numberBaseClassName} bg-gray-500`}>
                 {item.label}
               </span>
-              <span className="shrink-0 whitespace-nowrap text-[20px] leading-[24px] font-normal text-gray-600">
+              <span className={`${titleBaseClassName} text-gray-500`}>
                 未完待续......
               </span>
             </>
@@ -157,13 +159,13 @@ export function BlogPostChapterList({
         if (item.kind === 'post' && !item.isCurrent) {
           return (
             <Link
-              className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] px-3 py-2 no-underline hover:bg-gray-100"
+              className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] py-1.5 pr-1.5 no-underline hover:bg-gray-100"
               key={item.slug}
               params={{
                 postSlug: item.slug,
                 seriesSlug,
               }}
-              style={{ paddingLeft: `${12 + item.depth * 20}px` }}
+              style={{ paddingLeft }}
               to="/blogs/$seriesSlug/$postSlug"
             >
               {content}
@@ -173,9 +175,9 @@ export function BlogPostChapterList({
 
         return (
           <div
-            className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] px-3 py-2"
+            className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] py-1.5 pr-1.5"
             key={item.kind === 'post' ? item.slug : 'pending'}
-            style={{ paddingLeft: `${12 + item.depth * 20}px` }}
+            style={{ paddingLeft }}
           >
             {content}
           </div>

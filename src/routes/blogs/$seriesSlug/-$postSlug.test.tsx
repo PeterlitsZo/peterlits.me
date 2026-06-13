@@ -479,6 +479,51 @@ describe('BlogPostChapterList', () => {
     ).toBe('/blogs/tcp/handshake')
     expect(await screen.findByText('未完待续......')).toBeTruthy()
   })
+
+  it('uses Figma chapter selector spacing for nested posts', async () => {
+    renderWithRouter(() => (
+      <BlogPostChapterList
+        chapterItems={[
+          {
+            kind: 'post',
+            slug: 'intro',
+            title: '起步',
+            label: '1',
+            depth: 0,
+            isCurrent: true,
+          },
+          {
+            kind: 'post',
+            slug: 'runtime',
+            title: '内部原理',
+            label: '2',
+            depth: 0,
+            isCurrent: false,
+          },
+          {
+            kind: 'post',
+            slug: 'connection',
+            title: '连接管理',
+            label: '2.1',
+            depth: 1,
+            isCurrent: false,
+          },
+        ]}
+        seriesSlug="tcp"
+      />
+    ))
+
+    const currentNumber = await screen.findByText('1')
+    const currentRow = currentNumber.closest('div')
+    const nestedLink = await screen.findByRole('link', {
+      name: '2.1连接管理',
+    })
+
+    expect(currentNumber.className).toContain('size-[22px]')
+    expect(currentNumber.className).toContain('rounded-[8px]')
+    expect(currentRow?.style.paddingLeft).toBe('6px')
+    expect(nestedLink.style.paddingLeft).toBe('32px')
+  })
 })
 
 describe('BlogPostSiblingNavigation', () => {
