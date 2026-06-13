@@ -470,6 +470,7 @@ describe('BlogPostChapterList', () => {
             label: '1',
             depth: 0,
             isCurrent: true,
+            status: 'published',
           },
           {
             kind: 'post',
@@ -478,6 +479,7 @@ describe('BlogPostChapterList', () => {
             label: '2.1',
             depth: 1,
             isCurrent: false,
+            status: 'published',
           },
           {
             kind: 'pending',
@@ -511,6 +513,7 @@ describe('BlogPostChapterList', () => {
             label: '1',
             depth: 0,
             isCurrent: true,
+            status: 'published',
           },
           {
             kind: 'post',
@@ -519,6 +522,7 @@ describe('BlogPostChapterList', () => {
             label: '2',
             depth: 0,
             isCurrent: false,
+            status: 'published',
           },
           {
             kind: 'post',
@@ -527,6 +531,7 @@ describe('BlogPostChapterList', () => {
             label: '2.1',
             depth: 1,
             isCurrent: false,
+            status: 'published',
           },
         ]}
         seriesSlug="tcp"
@@ -548,7 +553,7 @@ describe('BlogPostChapterList', () => {
 
 describe('BlogPostSiblingNavigation', () => {
   it('uses a two-column grid so a single sibling card only occupies half width', async () => {
-    const { container } = renderWithRouter(() => (
+    renderWithRouter(() => (
       <BlogPostSiblingNavigation
         next={null}
         previous={{

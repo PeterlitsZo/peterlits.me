@@ -103,9 +103,14 @@ export function validateLoginInput(data: unknown) {
     throw new Error('用户名或密码错误')
   }
 
+  const record = data as {
+    username?: unknown
+    password?: unknown
+  }
+
   const username =
-    typeof data.username === 'string' ? data.username.trim() : ''
-  const password = typeof data.password === 'string' ? data.password : ''
+    typeof record.username === 'string' ? record.username.trim() : ''
+  const password = typeof record.password === 'string' ? record.password : ''
 
   if (!username || !password) {
     throw new Error('用户名或密码错误')

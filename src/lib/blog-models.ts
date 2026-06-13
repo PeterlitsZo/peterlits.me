@@ -51,8 +51,8 @@ export type VisibleBlogPostPageData = Omit<
 function sortChapterNodes(
   nodes: VisibleBlogPostChapterNode[],
 ): VisibleBlogPostChapterNode[] {
-  return nodes
-    .toSorted(
+  return [...nodes]
+    .sort(
       (left, right) => left.position - right.position || left.id - right.id,
     )
     .map((node) => ({
