@@ -64,10 +64,10 @@ function LoginModal({
   onSubmit: (formData: FormData) => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-24">
+    <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-[206px]">
       <button
         aria-label="关闭登录弹窗遮罩"
-        className="absolute inset-0 bg-transparent"
+        className="absolute inset-0 bg-[#030712]/10"
         data-testid="login-modal-overlay"
         onClick={onClose}
         type="button"
@@ -174,7 +174,7 @@ export function AuthTopBar({ leading }: { leading?: React.ReactNode } = {}) {
           {isUserMenuOpen ? (
             <div className="absolute left-[-136px] top-8 flex w-[160px] min-w-[160px] flex-col gap-1.5 rounded-[12px] border border-[#D1D5DB] bg-white p-1.5">
               <button
-                className="w-full rounded-[6px] border-0 bg-[#F3F4F6] p-1.5 text-left text-[14px] leading-[normal] font-normal text-black"
+                className="w-full rounded-[6px] border-0 bg-transparent p-1.5 text-left text-[14px] leading-[normal] font-normal text-black hover:bg-[#F9FAFB]"
                 disabled={isPending}
                 type="button"
               >
@@ -193,7 +193,7 @@ export function AuthTopBar({ leading }: { leading?: React.ReactNode } = {}) {
         </div>
       ) : (
         <button
-          className="inline-flex h-7 items-center justify-center rounded-[6px] border border-[#E5E7EB] bg-white px-3 text-[14px] leading-none font-normal text-black hover:bg-[#F9FAFB] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D1D5DB]"
+          className="inline-flex h-6 items-center justify-center rounded-[4px] border-0 bg-[#F3F4F6] px-4 text-[13px] leading-[normal] font-normal text-black hover:bg-[#E5E7EB] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D1D5DB]"
           onClick={openLoginModal}
           type="button"
         >

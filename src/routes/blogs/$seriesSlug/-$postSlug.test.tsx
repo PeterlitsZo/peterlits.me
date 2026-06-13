@@ -646,7 +646,22 @@ describe('BlogPostPageView', () => {
   it('keeps the login button visible for anonymous readers inside the shared shell', async () => {
     renderBlogPostPage()
 
-    expect(await screen.findByRole('button', { name: '登录' })).toBeTruthy()
+    const loginButton = await screen.findByRole('button', { name: '登录' })
+
+    expect(loginButton.className).toContain('h-6')
+    expect(loginButton.className).toContain('rounded-[4px]')
+    expect(loginButton.className).toContain('border-0')
+    expect(loginButton.className).toContain('bg-[#F3F4F6]')
+    expect(loginButton.className).toContain('px-4')
+    expect(loginButton.className).toContain('text-[13px]')
+    expect(loginButton.className).toContain('leading-[normal]')
+    expect(loginButton.className).toContain('font-normal')
+    expect(loginButton.className).toContain('text-black')
+    expect(loginButton.className).not.toContain('h-7')
+    expect(loginButton.className).not.toContain('rounded-[6px]')
+    expect(loginButton.className).not.toContain('border-[#E5E7EB]')
+    expect(loginButton.className).not.toContain('bg-white')
+    expect(loginButton.className).not.toContain('text-[14px]')
   })
 
   it('shows the avatar menu in the shared shell for authenticated reviewers', async () => {
