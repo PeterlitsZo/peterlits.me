@@ -4,41 +4,79 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 import type {
-  VisibleBlogPostChapter,
+  VisibleBlogPostChapterNode,
   VisibleBlogPostPageData,
 } from '../lib/blog'
 import remarkDefinitionList from '../lib/remark-definition-list'
+
+type FlatChapter = Omit<VisibleBlogPostChapterNode, 'children'>
 
 type ChapterItem =
   | {
       kind: 'post'
       slug: string
       title: string
-      position: number
+      label: string
+      depth: number
       isCurrent: boolean
     }
   | {
       kind: 'pending'
-      position: number
+      label: string
+      depth: number
     }
 
+export function flattenChapterTree(
+  chapters: VisibleBlogPostChapterNode[],
+): FlatChapter[] {
+  const flattened: FlatChapter[] = []
+
+  for (const chapter of chapters) {
+    const { children: _, ...flatChapter } = chapter
+    flattened.push(flatChapter)
+    flattened.push(...flattenChapterTree(chapter.children))
+  }
+
+  return flattened
+}
+
+function buildChapterItems(
+  chapters: VisibleBlogPostChapterNode[],
+  currentSlug: string,
+  parentLabel: string,
+  depth: number,
+): ChapterItem[] {
+  return chapters.flatMap((chapter) => {
+    const label = parentLabel
+      ? `${parentLabel}.${chapter.position}`
+      : String(chapter.position)
+
+    return [
+      {
+        kind: 'post' as const,
+        slug: chapter.slug,
+        title: chapter.title,
+        label,
+        depth,
+        isCurrent: chapter.slug === currentSlug,
+      },
+      ...buildChapterItems(chapter.children, currentSlug, label, depth + 1),
+    ]
+  })
+}
+
 export function getChapterItems(
-  chapters: VisibleBlogPostChapter[],
+  chapters: VisibleBlogPostChapterNode[],
   currentSlug: string,
   seriesStatus: VisibleBlogPostPageData['series_status'],
 ): ChapterItem[] {
-  const items: ChapterItem[] = chapters.map((chapter) => ({
-    kind: 'post',
-    slug: chapter.slug,
-    title: chapter.title,
-    position: chapter.position,
-    isCurrent: chapter.slug === currentSlug,
-  }))
+  const items = buildChapterItems(chapters, currentSlug, '', 0)
 
   if (seriesStatus === 'ongoing') {
     items.push({
       kind: 'pending',
-      position: (chapters.at(-1)?.position ?? 0) + 1,
+      label: String((chapters.at(-1)?.position ?? 0) + 1),
+      depth: 0,
     })
   }
 
@@ -46,10 +84,11 @@ export function getChapterItems(
 }
 
 export function getSiblingPosts(
-  chapters: VisibleBlogPostChapter[],
+  chapters: VisibleBlogPostChapterNode[],
   currentSlug: string,
 ) {
-  const currentIndex = chapters.findIndex(
+  const flattened = flattenChapterTree(chapters)
+  const currentIndex = flattened.findIndex(
     (chapter) => chapter.slug === currentSlug,
   )
 
@@ -61,8 +100,8 @@ export function getSiblingPosts(
   }
 
   return {
-    previous: chapters[currentIndex - 1] ?? null,
-    next: chapters[currentIndex + 1] ?? null,
+    previous: flattened[currentIndex - 1] ?? null,
+    next: flattened[currentIndex + 1] ?? null,
   }
 }
 
@@ -94,9 +133,9 @@ export function BlogPostChapterList({
           item.kind === 'post' ? (
             <>
               <span
-                className={`flex size-5 shrink-0 items-center justify-center rounded-[12px] text-[16px] leading-none ${numberClassName}`}
+                className={`flex min-w-5 shrink-0 items-center justify-center rounded-[12px] px-1.5 text-[14px] leading-5 ${numberClassName}`}
               >
-                {item.position}
+                {item.label}
               </span>
               <span
                 className={`shrink-0 whitespace-nowrap text-[20px] leading-[24px] font-normal ${titleClassName}`}
@@ -106,8 +145,8 @@ export function BlogPostChapterList({
             </>
           ) : (
             <>
-              <span className="flex size-5 shrink-0 items-center justify-center rounded-[12px] bg-gray-600 text-[16px] leading-none text-white">
-                {item.position}
+              <span className="flex min-w-5 shrink-0 items-center justify-center rounded-[12px] bg-gray-600 px-1.5 text-[14px] leading-5 text-white">
+                {item.label}
               </span>
               <span className="shrink-0 whitespace-nowrap text-[20px] leading-[24px] font-normal text-gray-600">
                 未完待续......
@@ -124,6 +163,7 @@ export function BlogPostChapterList({
                 postSlug: item.slug,
                 seriesSlug,
               }}
+              style={{ paddingLeft: `${12 + item.depth * 20}px` }}
               to="/blogs/$seriesSlug/$postSlug"
             >
               {content}
@@ -135,6 +175,7 @@ export function BlogPostChapterList({
           <div
             className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] px-3 py-2"
             key={item.kind === 'post' ? item.slug : 'pending'}
+            style={{ paddingLeft: `${12 + item.depth * 20}px` }}
           >
             {content}
           </div>
@@ -149,8 +190,8 @@ export function BlogPostSiblingNavigation({
   previous,
   seriesSlug,
 }: {
-  next: VisibleBlogPostChapter | null
-  previous: VisibleBlogPostChapter | null
+  next: FlatChapter | null
+  previous: FlatChapter | null
   seriesSlug: string
 }) {
   if (!previous && !next) {

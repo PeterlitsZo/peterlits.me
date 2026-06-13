@@ -1,5 +1,9 @@
 # AGENTS.md
 
+## Note
+
+- Do not `git add` things that is ignored by `.gitignore`.
+
 ## Git Message
 
 Git commit messages use the following format:

@@ -40,7 +40,7 @@ function transformChildren(children: MarkdownNode[]) {
     const definitionListChildren: MarkdownNode[] = []
     let consumed = 0
 
-    while (true) {
+    for (;;) {
       const pair = parseDefinitionPair(children, index + consumed)
 
       if (!pair) {
@@ -63,7 +63,7 @@ function transformChildren(children: MarkdownNode[]) {
       continue
     }
 
-    nextChildren.push(children[index]!)
+    nextChildren.push(children[index])
     index += 1
   }
 
@@ -74,7 +74,7 @@ function parseDefinitionPair(
   children: MarkdownNode[],
   index: number,
 ): DefinitionPair | null {
-  const node = children[index]
+  const node = children.at(index)
 
   if (!node || node.type !== 'paragraph' || !node.children) {
     return null
@@ -83,16 +83,18 @@ function parseDefinitionPair(
   const lines = splitParagraphIntoLines(node.children)
 
   if (isSingleParagraphDefinitionList(lines)) {
+    const [termLine, ...definitionOnlyLines] = lines
+
     return {
       children: createDefinitionPair(
-        trimLine(lines[0]!),
-        lines.slice(1).map((line) => stripLinePrefix(trimLine(line))),
+        trimLine(termLine),
+        definitionOnlyLines.map((line) => stripLinePrefix(trimLine(line))),
       ),
       consumed: 1,
     }
   }
 
-  if (startsWithDefinitionMarker(lines[0]!)) {
+  if (startsWithDefinitionMarker(lines[0])) {
     return null
   }
 
@@ -100,7 +102,7 @@ function parseDefinitionPair(
   let consumed = 1
 
   for (let cursor = index + 1; cursor < children.length; cursor += 1) {
-    const sibling = children[cursor]
+    const sibling = children.at(cursor)
 
     if (!sibling || sibling.type !== 'paragraph' || !sibling.children) {
       break
@@ -154,7 +156,7 @@ function createDefinitionBlocks(definitionLines: MarkdownNode[][]) {
   const blocks: MarkdownNode[] = []
 
   for (let index = 0; index < definitionLines.length; ) {
-    const line = definitionLines[index]!
+    const line = definitionLines[index]
     const orderedItem = stripListMarker(line, /^(\d+)\.\s+/)
 
     if (orderedItem) {
@@ -167,7 +169,7 @@ function createDefinitionBlocks(definitionLines: MarkdownNode[][]) {
 
       while (index < definitionLines.length) {
         const nextOrderedItem = stripListMarker(
-          definitionLines[index]!,
+          definitionLines[index],
           /^(\d+)\.\s+/,
         )
 
@@ -200,7 +202,7 @@ function createDefinitionBlocks(definitionLines: MarkdownNode[][]) {
 
       while (index < definitionLines.length) {
         const nextUnorderedItem = stripListMarker(
-          definitionLines[index]!,
+          definitionLines[index],
           /^[-*+]\s+/,
         )
 
@@ -247,7 +249,7 @@ function createListItemNode(children: MarkdownNode[]) {
 function isSingleParagraphDefinitionList(lines: MarkdownNode[][]) {
   return (
     lines.length >= 2 &&
-    !startsWithDefinitionMarker(lines[0]!) &&
+    !startsWithDefinitionMarker(lines[0]) &&
     lines.slice(1).every(startsWithDefinitionMarker)
   )
 }
@@ -268,7 +270,7 @@ function splitParagraphIntoLines(children: MarkdownNode[]) {
     const parts = child.value.split('\n')
 
     for (let partIndex = 0; partIndex < parts.length; partIndex += 1) {
-      const part = parts[partIndex]!
+      const part = parts[partIndex]
 
       if (part.length > 0) {
         lines.at(-1)!.push({
@@ -292,7 +294,7 @@ function trimLine(line: MarkdownNode[]) {
   for (let index = 0; index < trimmed.length; index += 1) {
     const node = trimmed[index]
 
-    if (node?.type === 'text' && typeof node.value === 'string') {
+    if (node.type === 'text' && typeof node.value === 'string') {
       node.value = node.value.replace(/^\s+/, '')
 
       if (node.value.length === 0) {
@@ -310,7 +312,7 @@ function trimLine(line: MarkdownNode[]) {
   for (let index = trimmed.length - 1; index >= 0; index -= 1) {
     const node = trimmed[index]
 
-    if (node?.type === 'text' && typeof node.value === 'string') {
+    if (node.type === 'text' && typeof node.value === 'string') {
       node.value = node.value.replace(/\s+$/, '')
 
       if (node.value.length === 0) {
@@ -355,7 +357,7 @@ function replaceLeadingText(
     (node) => node.type === 'text' && typeof node.value === 'string',
   )
 
-  if (firstTextNode?.value) {
+  if (firstTextNode && firstTextNode.value) {
     firstTextNode.value = firstTextNode.value.replace(pattern, replacement)
   }
 

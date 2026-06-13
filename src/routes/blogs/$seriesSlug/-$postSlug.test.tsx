@@ -14,9 +14,11 @@ import {
   BlogPostMarkdown,
   BlogPostPageView,
   BlogPostSiblingNavigation,
-  getSiblingPosts,
+  flattenChapterTree,
   getChapterItems,
+  getSiblingPosts,
 } from '../../../components/blog-post-page'
+import { buildBlogPostChapterTree } from '../../../lib/blog'
 
 beforeAll(() => {
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
@@ -64,22 +66,37 @@ function renderBlogPostPage() {
         post_status: 'published',
         chapters: [
           {
+            id: 1,
             slug: 'getting-started',
             title: '起步',
             position: 1,
             status: 'published',
+            children: [],
           },
           {
+            id: 2,
             slug: 'intro',
             title: 'Runtime',
             position: 2,
             status: 'published',
+            children: [
+              {
+                id: 3,
+                slug: 'handshake',
+                title: '三次握手',
+                position: 1,
+                status: 'published',
+                children: [],
+              },
+            ],
           },
           {
+            id: 4,
             slug: 'timers',
             title: '计时器',
             position: 3,
             status: 'published',
+            children: [],
           },
         ],
       }}
@@ -87,18 +104,120 @@ function renderBlogPostPage() {
   ))
 }
 
+describe('buildBlogPostChapterTree', () => {
+  it('builds a sorted nested chapter tree and excludes orphaned nodes', () => {
+    const tree = buildBlogPostChapterTree([
+      {
+        id: 4,
+        parent_post_id: 2,
+        slug: 'tcp-state',
+        title: '状态机',
+        position: 2,
+        status: 'published',
+      },
+      {
+        id: 1,
+        parent_post_id: null,
+        slug: 'intro',
+        title: '起步',
+        position: 1,
+        status: 'published',
+      },
+      {
+        id: 3,
+        parent_post_id: 2,
+        slug: 'handshake',
+        title: '三次握手',
+        position: 1,
+        status: 'published',
+      },
+      {
+        id: 5,
+        parent_post_id: 999,
+        slug: 'orphan',
+        title: '孤儿节点',
+        position: 1,
+        status: 'published',
+      },
+      {
+        id: 2,
+        parent_post_id: null,
+        slug: 'runtime',
+        title: 'Runtime',
+        position: 2,
+        status: 'published',
+      },
+    ])
+
+    expect(tree).toEqual([
+      {
+        id: 1,
+        slug: 'intro',
+        title: '起步',
+        position: 1,
+        status: 'published',
+        children: [],
+      },
+      {
+        id: 2,
+        slug: 'runtime',
+        title: 'Runtime',
+        position: 2,
+        status: 'published',
+        children: [
+          {
+            id: 3,
+            slug: 'handshake',
+            title: '三次握手',
+            position: 1,
+            status: 'published',
+            children: [],
+          },
+          {
+            id: 4,
+            slug: 'tcp-state',
+            title: '状态机',
+            position: 2,
+            status: 'published',
+            children: [],
+          },
+        ],
+      },
+    ])
+  })
+})
+
 describe('getChapterItems', () => {
-  it('appends a pending item for ongoing series', () => {
+  it('derives nested chapter labels and appends a root-level pending item', () => {
     const items = getChapterItems(
       [
         {
+          id: 1,
           slug: 'intro',
           title: '起步',
           position: 1,
           status: 'published',
+          children: [],
+        },
+        {
+          id: 2,
+          slug: 'runtime',
+          title: 'Runtime',
+          position: 2,
+          status: 'published',
+          children: [
+            {
+              id: 3,
+              slug: 'handshake',
+              title: '三次握手',
+              position: 1,
+              status: 'published',
+              children: [],
+            },
+          ],
         },
       ],
-      'intro',
+      'handshake',
       'ongoing',
     )
 
@@ -107,45 +226,116 @@ describe('getChapterItems', () => {
         kind: 'post',
         slug: 'intro',
         title: '起步',
-        position: 1,
+        label: '1',
+        depth: 0,
+        isCurrent: false,
+      },
+      {
+        kind: 'post',
+        slug: 'runtime',
+        title: 'Runtime',
+        label: '2',
+        depth: 0,
+        isCurrent: false,
+      },
+      {
+        kind: 'post',
+        slug: 'handshake',
+        title: '三次握手',
+        label: '2.1',
+        depth: 1,
         isCurrent: true,
       },
       {
         kind: 'pending',
-        position: 2,
+        label: '3',
+        depth: 0,
       },
     ])
   })
 })
 
 describe('getSiblingPosts', () => {
-  it('returns the previous and next chapters around the current post', () => {
+  it('returns previous and next posts in depth-first display order', () => {
     const siblings = getSiblingPosts(
       [
         {
+          id: 1,
           slug: 'intro',
           title: '起步',
           position: 1,
           status: 'published',
+          children: [],
         },
         {
+          id: 2,
           slug: 'runtime',
           title: 'Runtime',
           position: 2,
           status: 'published',
-        },
-        {
-          slug: 'io',
-          title: 'I/O',
-          position: 3,
-          status: 'published',
+          children: [
+            {
+              id: 3,
+              slug: 'handshake',
+              title: '三次握手',
+              position: 1,
+              status: 'published',
+              children: [],
+            },
+            {
+              id: 4,
+              slug: 'tcp-state',
+              title: '状态机',
+              position: 2,
+              status: 'published',
+              children: [],
+            },
+          ],
         },
       ],
-      'runtime',
+      'handshake',
     )
 
-    expect(siblings.previous?.slug).toBe('intro')
-    expect(siblings.next?.slug).toBe('io')
+    expect(siblings.previous?.slug).toBe('runtime')
+    expect(siblings.next?.slug).toBe('tcp-state')
+  })
+})
+
+describe('flattenChapterTree', () => {
+  it('flattens nested chapters in display order', () => {
+    const flattened = flattenChapterTree([
+      {
+        id: 1,
+        slug: 'intro',
+        title: '起步',
+        position: 1,
+        status: 'published',
+        children: [],
+      },
+      {
+        id: 2,
+        slug: 'runtime',
+        title: 'Runtime',
+        position: 2,
+        status: 'published',
+        children: [
+          {
+            id: 3,
+            slug: 'handshake',
+            title: '三次握手',
+            position: 1,
+            status: 'published',
+            children: [],
+          },
+        ],
+      },
+    ])
+
+    expect(flattened.map((chapter) => chapter.slug)).toEqual([
+      'intro',
+      'runtime',
+      'handshake',
+    ])
   })
 })
 
@@ -232,9 +422,9 @@ describe('BlogPostMarkdown', () => {
     expect(definitionDetails).toHaveLength(1)
     expect(definitionTerms[0]?.textContent).toBe('block_on')
     expect(paragraphs).toHaveLength(3)
-    expect(paragraphs[0]?.textContent).toContain('在当前线程上运行一个 future')
-    expect(paragraphs[1]?.textContent).toContain('Runtime::block_on')
-    expect(paragraphs[2]?.textContent).toBe('这个方法会在以下情况下 panic：')
+    expect(paragraphs[0].textContent).toContain('在当前线程上运行一个 future')
+    expect(paragraphs[1].textContent).toContain('Runtime::block_on')
+    expect(paragraphs[2].textContent).toBe('这个方法会在以下情况下 panic：')
     expect(orderedList).toBeTruthy()
     expect(
       Array.from(orderedList?.querySelectorAll('li') ?? []).map(
@@ -257,19 +447,22 @@ describe('BlogPostChapterList', () => {
             kind: 'post',
             slug: 'intro',
             title: '起步',
-            position: 1,
+            label: '1',
+            depth: 0,
             isCurrent: true,
           },
           {
             kind: 'post',
             slug: 'handshake',
             title: '三次握手',
-            position: 2,
+            label: '2.1',
+            depth: 1,
             isCurrent: false,
           },
           {
             kind: 'pending',
-            position: 3,
+            label: '3',
+            depth: 0,
           },
         ]}
         seriesSlug="tcp"
@@ -277,9 +470,13 @@ describe('BlogPostChapterList', () => {
     ))
 
     expect((await screen.findByText('起步')).closest('div')).toBeTruthy()
-    expect((await screen.findByRole('link', { name: '2三次握手' })).getAttribute('href')).toBe(
-      '/blogs/tcp/handshake',
-    )
+    expect(
+      (
+        await screen.findByRole('link', {
+          name: '2.1三次握手',
+        })
+      ).getAttribute('href'),
+    ).toBe('/blogs/tcp/handshake')
     expect(await screen.findByText('未完待续......')).toBeTruthy()
   })
 })
@@ -290,6 +487,7 @@ describe('BlogPostSiblingNavigation', () => {
       <BlogPostSiblingNavigation
         next={null}
         previous={{
+          id: 1,
           slug: 'getting-started',
           title: '起步',
           position: 1,
@@ -310,6 +508,7 @@ describe('BlogPostSiblingNavigation', () => {
     renderWithRouter(() => (
       <BlogPostSiblingNavigation
         next={{
+          id: 4,
           slug: 'timers',
           title: '计时器',
           position: 3,
@@ -338,10 +537,32 @@ describe('BlogPostPageView', () => {
   it('renders previous and next post navigation after the article content', async () => {
     renderBlogPostPage()
 
-    const previousLink = await screen.findByRole('link', { name: '上一篇起步' })
-    const nextLink = await screen.findByRole('link', { name: '下一篇计时器' })
+    const previousLink = await screen.findByRole('link', {
+      name: '上一篇起步',
+    })
+    const nextLink = await screen.findByRole('link', {
+      name: '下一篇三次握手',
+    })
 
     expect(previousLink.getAttribute('href')).toBe('/blogs/tcp/getting-started')
-    expect(nextLink.getAttribute('href')).toBe('/blogs/tcp/timers')
+    expect(nextLink.getAttribute('href')).toBe('/blogs/tcp/handshake')
+  })
+
+  it('renders nested chapter labels for child posts', async () => {
+    renderBlogPostPage()
+
+    expect(await screen.findByText('2')).toBeTruthy()
+    expect(await screen.findByText('2.1')).toBeTruthy()
+  })
+
+  it('keeps the pending chapter item at the root level after nested children', async () => {
+    renderBlogPostPage()
+
+    const nestedLabel = await screen.findByText('2.1')
+    const pendingLabel = await screen.findByText('4')
+
+    expect(nestedLabel.compareDocumentPosition(pendingLabel)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
   })
 })
