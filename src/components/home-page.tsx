@@ -2,6 +2,14 @@ import { Link } from '@tanstack/react-router'
 
 import type { VisibleBlogSeriesListItem } from '../lib/blog'
 
+function DraftBadge() {
+  return (
+    <span className="inline-flex items-center rounded-full bg-[#FFF7ED] px-2 py-1 text-[12px] leading-none font-medium text-[#C2410C]">
+      Draft
+    </span>
+  )
+}
+
 export function HomePageView({
   blogSeries,
 }: {
@@ -9,7 +17,7 @@ export function HomePageView({
 }) {
   return (
     <div className="min-h-screen bg-gray-50 px-0 sm:px-6">
-      <main className="mx-auto flex min-h-screen w-full max-w-[800px] flex-col bg-white sm:border-x border-gray-100">
+      <main className="mx-auto flex min-h-screen w-full max-w-[800px] flex-col bg-white pt-6 sm:border-x border-gray-100">
         <header className="flex min-h-[300px] flex-col justify-end px-6 py-6">
           <h1 className="text-[40px] leading-none font-normal text-gray-950 sm:text-[48px]">
             博客
@@ -22,8 +30,11 @@ export function HomePageView({
         <section className="flex flex-col gap-2 px-4 py-6">
           {blogSeries.map((series) => {
             const content = (
-              <span className="block text-[24px] leading-[1.35] font-normal text-black">
-                {series.title}
+              <span className="flex items-center gap-3">
+                <span className="block text-[24px] leading-[1.35] font-normal text-black">
+                  {series.title}
+                </span>
+                {series.status === 'draft' ? <DraftBadge /> : null}
               </span>
             )
 

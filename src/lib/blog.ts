@@ -2,15 +2,18 @@ import { notFound } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { env } from 'cloudflare:workers'
 
+import { getViewerBlogVisibility, type Viewer } from './auth'
+
 export type VisibleBlogSeriesListItem = {
   slug: string
   title: string
   description: string
   first_post_slug: string | null
+  status: BlogSeriesStatus
 }
 
-type BlogSeriesStatus = 'ongoing' | 'completed' | 'archived'
-type BlogPostStatus = 'published' | 'archived'
+export type BlogSeriesStatus = 'draft' | 'ongoing' | 'completed' | 'archived'
+export type BlogPostStatus = 'draft' | 'published' | 'archived'
 
 type VisibleBlogPostRecord = {
   series_id: number
@@ -54,9 +57,6 @@ export type VisibleBlogPostChapterNode = {
 export type VisibleBlogPostPageData = Omit<VisibleBlogPostRecord, 'series_id'> & {
   chapters: VisibleBlogPostChapterNode[]
 }
-
-const VISIBLE_SERIES_STATUSES = ['ongoing', 'completed', 'archived'] as const
-const VISIBLE_POST_STATUSES = ['published', 'archived'] as const
 
 function sortChapterNodes(
   nodes: VisibleBlogPostChapterNode[],
@@ -115,8 +115,16 @@ function getDb() {
   return env.peterlits_me
 }
 
+function getVisibility(viewer: Viewer | null) {
+  return getViewerBlogVisibility(viewer)
+}
+
 export const getVisibleBlogSeries = createServerFn({ method: 'GET' }).handler(
   async () => {
+    const { getViewerFromRequest } = await import('./auth.server')
+    const viewer = await getViewerFromRequest()
+    const visibility = getVisibility(viewer)
+
     const { results } = await getDb()
       .prepare(
         `
@@ -128,18 +136,20 @@ export const getVisibleBlogSeries = createServerFn({ method: 'GET' }).handler(
               SELECT blog_posts.slug
               FROM blog_posts
               WHERE blog_posts.series_id = blog_series.id
-                AND blog_posts.status IN (?, ?)
+                AND blog_posts.status IN (?, ?, ?)
               ORDER BY blog_posts.position ASC, blog_posts.id ASC
               LIMIT 1
             ) AS first_post_slug
+            ,
+            blog_series.status AS status
           FROM blog_series
-          WHERE blog_series.status IN (?, ?, ?)
+          WHERE blog_series.status IN (?, ?, ?, ?)
           ORDER BY blog_series.created_at ASC, blog_series.id ASC
         `,
       )
       .bind(
-        ...VISIBLE_POST_STATUSES,
-        ...VISIBLE_SERIES_STATUSES,
+        ...visibility.postStatuses,
+        ...visibility.seriesStatuses,
       )
       .all<VisibleBlogSeriesListItem>()
 
@@ -148,8 +158,12 @@ export const getVisibleBlogSeries = createServerFn({ method: 'GET' }).handler(
 )
 
 export const getVisibleBlogPost = createServerFn({ method: 'GET' })
-  .inputValidator((data: { seriesSlug: string; postSlug: string }) => data)
+  .validator((data: { seriesSlug: string; postSlug: string }) => data)
   .handler(async ({ data }) => {
+    const { getViewerFromRequest } = await import('./auth.server')
+    const viewer = await getViewerFromRequest()
+    const visibility = getVisibility(viewer)
+
     const post = await getDb()
       .prepare(
         `
@@ -170,16 +184,16 @@ export const getVisibleBlogPost = createServerFn({ method: 'GET' })
             ON blog_posts.series_id = blog_series.id
           WHERE blog_series.slug = ?
             AND blog_posts.slug = ?
-            AND blog_series.status IN (?, ?, ?)
-            AND blog_posts.status IN (?, ?)
+            AND blog_series.status IN (?, ?, ?, ?)
+            AND blog_posts.status IN (?, ?, ?)
           LIMIT 1
         `,
       )
       .bind(
         data.seriesSlug,
         data.postSlug,
-        ...VISIBLE_SERIES_STATUSES,
-        ...VISIBLE_POST_STATUSES,
+        ...visibility.seriesStatuses,
+        ...visibility.postStatuses,
       )
       .first<VisibleBlogPostRecord>()
 
@@ -199,11 +213,11 @@ export const getVisibleBlogPost = createServerFn({ method: 'GET' })
             status
           FROM blog_posts
           WHERE series_id = ?
-            AND status IN (?, ?)
+            AND status IN (?, ?, ?)
           ORDER BY position ASC, id ASC
         `,
       )
-      .bind(post.series_id, ...VISIBLE_POST_STATUSES)
+      .bind(post.series_id, ...visibility.postStatuses)
       .all<VisibleBlogPostChapterRecord>()
 
     const { series_id: _, ...page } = post

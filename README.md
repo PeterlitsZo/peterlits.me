@@ -62,6 +62,34 @@ For production env vars, run `wrangler secret put MY_VAR` for each secret listed
 
 KV, D1, R2, and Durable Object bindings are configured in `wrangler.jsonc` — see https://developers.cloudflare.com/workers/wrangler/configuration/.
 
+## Reviewer Login
+
+This site supports privileged draft access through username/password login.
+
+1. Set a JWT secret before running the app:
+
+```bash
+wrangler secret put AUTH_JWT_SECRET
+```
+
+2. Create user accounts manually in D1. Passwords must be bcrypt hashes, and `role` must be either `owner` or `reviewer`.
+
+Example SQL:
+
+```sql
+INSERT INTO users (username, password_hash, display_name, role)
+VALUES (
+  'reviewer',
+  '$2b$10$replace.with.a.real.bcrypt.hash',
+  'Reviewer',
+  'reviewer'
+);
+```
+
+3. Open the site and use the top-right `登录` button. Successful login stores a JWT in an `httpOnly` cookie.
+
+Authenticated `owner` and `reviewer` users can view draft blog series and draft blog posts. Anonymous visitors still only see published content.
+
 
 
 ## Routing

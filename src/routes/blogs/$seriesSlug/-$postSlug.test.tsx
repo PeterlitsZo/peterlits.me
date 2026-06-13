@@ -18,6 +18,7 @@ import {
   getChapterItems,
   getSiblingPosts,
 } from '../../../components/blog-post-page'
+import { SiteShell } from '../../../components/site-shell'
 import { buildBlogPostChapterTree } from '../../../lib/blog'
 
 beforeAll(() => {
@@ -28,9 +29,25 @@ afterEach(() => {
   cleanup()
 })
 
-function renderWithRouter(component: () => React.JSX.Element) {
+function renderWithRouter(
+  component: () => React.JSX.Element,
+  {
+    viewer = null,
+  }: {
+    viewer?: {
+      displayName: string
+      id: number
+      role: 'owner' | 'reviewer'
+      username: string
+    } | null
+  } = {},
+) {
   const rootRoute = createRootRoute({
-    component: () => <Outlet />,
+    component: () => (
+      <SiteShell viewer={viewer}>
+        <Outlet />
+      </SiteShell>
+    ),
   })
 
   const blogRoute = createRoute({
@@ -57,20 +74,20 @@ function renderBlogPostPage() {
         series_slug: 'tcp',
         series_title: '我知道的 TCP',
         series_description: '或者说，大家都知道的 TCP 知识',
-        series_status: 'ongoing',
+        series_status: 'draft',
         post_slug: 'intro',
         post_title: 'Runtime',
         post_summary: '从连接语义开始',
         post_content: '## 起步\n\nTCP 是一种面向连接的协议。',
         post_position: 2,
-        post_status: 'published',
+        post_status: 'draft',
         chapters: [
           {
             id: 1,
             slug: 'getting-started',
             title: '起步',
             position: 1,
-            status: 'published',
+            status: 'draft',
             children: [],
           },
           {
@@ -95,7 +112,7 @@ function renderBlogPostPage() {
             slug: 'timers',
             title: '计时器',
             position: 3,
-            status: 'published',
+            status: 'draft',
             children: [],
           },
         ],
@@ -229,6 +246,7 @@ describe('getChapterItems', () => {
         label: '1',
         depth: 0,
         isCurrent: false,
+        status: 'published',
       },
       {
         kind: 'post',
@@ -237,6 +255,7 @@ describe('getChapterItems', () => {
         label: '2',
         depth: 0,
         isCurrent: false,
+        status: 'published',
       },
       {
         kind: 'post',
@@ -245,6 +264,7 @@ describe('getChapterItems', () => {
         label: '2.1',
         depth: 1,
         isCurrent: true,
+        status: 'published',
       },
       {
         kind: 'pending',
@@ -604,10 +624,60 @@ describe('BlogPostPageView', () => {
     renderBlogPostPage()
 
     const nestedLabel = await screen.findByText('2.1')
-    const pendingLabel = await screen.findByText('4')
+    const pendingLabel = await screen.findByText('3')
 
     expect(nestedLabel.compareDocumentPosition(pendingLabel)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
+  })
+
+  it('renders draft markers for the series, current post, and draft chapters', async () => {
+    renderBlogPostPage()
+
+    expect(await screen.findAllByText('Draft')).toHaveLength(4)
+  })
+
+  it('keeps the login button visible for anonymous readers inside the shared shell', async () => {
+    renderBlogPostPage()
+
+    expect(await screen.findByRole('button', { name: '登录' })).toBeTruthy()
+  })
+
+  it('shows the avatar menu in the shared shell for authenticated reviewers', async () => {
+    renderWithRouter(
+      () => (
+        <BlogPostPageView
+          page={{
+            series_slug: 'tcp',
+            series_title: '我知道的 TCP',
+            series_description: '或者说，大家都知道的 TCP 知识',
+            series_status: 'completed',
+            post_slug: 'intro',
+            post_title: 'Runtime',
+            post_summary: '从连接语义开始',
+            post_content: '## 起步\n\nTCP 是一种面向连接的协议。',
+            post_position: 2,
+            post_status: 'published',
+            chapters: [],
+          }}
+        />
+      ),
+      {
+        viewer: {
+          displayName: 'Reviewer',
+          id: 2,
+          role: 'reviewer',
+          username: 'reviewer',
+        },
+      },
+    )
+
+    const avatarButton = await screen.findByRole('button', {
+      name: '打开用户菜单',
+    })
+    avatarButton.click()
+
+    expect(await screen.findByText('Reviewer')).toBeTruthy()
+    expect(screen.getByRole('button', { name: '登出' })).toBeTruthy()
   })
 })

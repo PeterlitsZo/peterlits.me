@@ -4,6 +4,8 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 import type {
+  BlogPostStatus,
+  BlogSeriesStatus,
   VisibleBlogPostChapterNode,
   VisibleBlogPostPageData,
 } from '../lib/blog'
@@ -19,6 +21,7 @@ type ChapterItem =
       label: string
       depth: number
       isCurrent: boolean
+      status: BlogPostStatus
     }
   | {
       kind: 'pending'
@@ -59,10 +62,31 @@ function buildChapterItems(
         label,
         depth,
         isCurrent: chapter.slug === currentSlug,
+        status: chapter.status,
       },
       ...buildChapterItems(chapter.children, currentSlug, label, depth + 1),
     ]
   })
+}
+
+function DraftBadge() {
+  return (
+    <span className="inline-flex items-center rounded-full bg-[#FFF7ED] px-2 py-1 text-[12px] leading-none font-medium text-[#C2410C]">
+      Draft
+    </span>
+  )
+}
+
+function StatusBadge({
+  status,
+}: {
+  status: BlogPostStatus | BlogSeriesStatus
+}) {
+  if (status !== 'draft') {
+    return null
+  }
+
+  return <DraftBadge />
 }
 
 export function getChapterItems(
@@ -141,8 +165,11 @@ export function BlogPostChapterList({
               <span className={`${numberBaseClassName} ${numberClassName}`}>
                 {item.label}
               </span>
-              <span className={`${titleBaseClassName} ${titleClassName}`}>
-                {item.title}
+              <span
+                className={`flex min-w-0 items-center gap-2 ${titleBaseClassName} ${titleClassName}`}
+              >
+                <span className="truncate">{item.title}</span>
+                <StatusBadge status={item.status} />
               </span>
             </>
           ) : (
@@ -251,7 +278,7 @@ export function BlogPostPageView({ page }: { page: VisibleBlogPostPageData }) {
   return (
     <div className="min-h-screen bg-gray-50 px-0 sm:px-6">
       <article className="mx-auto flex w-full max-w-[800px] flex-col sm:border-x border-gray-100 bg-white">
-        <div className="flex items-center gap-3 px-6 py-[18px]">
+        <div className="flex items-center gap-3 px-6 py-[18px] pt-6">
           <Link
             className="flex items-center gap-3 text-black no-underline transition-colors hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
             to="/"
@@ -268,15 +295,24 @@ export function BlogPostPageView({ page }: { page: VisibleBlogPostPageData }) {
         </div>
 
         <header className="flex min-h-[300px] flex-col justify-end px-6 py-6">
-          <h1 className="text-[40px] leading-none font-normal text-gray-950 sm:text-[48px]">
-            {page.series_title}
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-[40px] leading-none font-normal text-gray-950 sm:text-[48px]">
+              {page.series_title}
+            </h1>
+            <StatusBadge status={page.series_status} />
+          </div>
           <p className="mt-2 text-[24px] leading-none font-normal text-gray-600">
             {page.series_description}
           </p>
         </header>
 
         <section className="p-6">
+          <div className="mb-6 flex items-center gap-3">
+            <h2 className="m-0 text-[32px] leading-none font-normal text-black">
+              {page.post_title}
+            </h2>
+            <StatusBadge status={page.post_status} />
+          </div>
           <BlogPostChapterList
             chapterItems={chapterItems}
             seriesSlug={page.series_slug}
