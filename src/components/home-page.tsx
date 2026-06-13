@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router'
 
 import type { VisibleBlogSeriesListItem } from '../lib/blog-models'
+import { AuthTopBar } from './site-shell'
 
 function DraftBadge() {
   return (
@@ -16,9 +17,13 @@ export function HomePageView({
   blogSeries: VisibleBlogSeriesListItem[]
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 px-0 sm:px-6">
-      <main className="mx-auto flex min-h-screen w-full max-w-[800px] flex-col bg-white pt-6 sm:border-x border-gray-100">
-        <header className="flex min-h-[300px] flex-col justify-end px-6 py-6">
+    <div className="min-h-screen bg-[#F9FAFB] px-0" data-testid="home-page">
+      <main
+        aria-label="博客首页"
+        className="mx-auto flex min-h-screen w-full max-w-[800px] flex-col overflow-clip border-x border-[#F3F4F6] bg-white"
+      >
+        <AuthTopBar />
+        <header className="flex h-[300px] shrink-0 flex-col justify-end overflow-clip p-6">
           <h1 className="text-[40px] leading-none font-normal text-gray-950 sm:text-[48px]">
             博客
           </h1>
@@ -61,6 +66,7 @@ export function HomePageView({
             )
           })}
         </section>
+        <div className="min-h-0 flex-1" />
       </main>
     </div>
   )

@@ -115,6 +115,45 @@ describe('auth cookie helpers', () => {
 })
 
 describe('loginFromRequest', () => {
+  it('throws an explicit configuration error when AUTH_JWT_SECRET is missing', async () => {
+    const originalSecret = env.AUTH_JWT_SECRET
+    const originalDb = env.peterlits_me
+
+    env.AUTH_JWT_SECRET = undefined as unknown as string
+    env.peterlits_me = {
+      prepare() {
+        return {
+          bind() {
+            return {
+              async first() {
+                return {
+                  id: 1,
+                  username: 'peter',
+                  displayName: 'Peter',
+                  role: 'owner',
+                  passwordHash:
+                    '$2b$10$KDECCa143XhQZm6KFPSLkOlx7x0VT39JDZNFr7yyZ7yTNcevw4lnG',
+                }
+              },
+            }
+          },
+        }
+      },
+    } as unknown as D1Database
+
+    try {
+      await expect(
+        loginFromRequest({
+          username: 'peter',
+          password: 'secret',
+        }),
+      ).rejects.toThrow('AUTH_JWT_SECRET is not configured')
+    } finally {
+      env.AUTH_JWT_SECRET = originalSecret
+      env.peterlits_me = originalDb
+    }
+  })
+
   it('returns the generic auth error instead of crashing during input validation', async () => {
     const originalDb = env.peterlits_me
 
@@ -156,7 +195,8 @@ describe('loginFromRequest', () => {
                   username: 'peter',
                   displayName: 'Peter',
                   role: 'editor',
-                  passwordHash: '$2b$10$KIXQ4A0zwM4h6NfA6Q8cwu5BrP2byQ7iI9iA4Yw0vO4lB0wPXxF1C',
+                  passwordHash:
+                    '$2b$10$KIXQ4A0zwM4h6NfA6Q8cwu5BrP2byQ7iI9iA4Yw0vO4lB0wPXxF1C',
                 }
               },
             }

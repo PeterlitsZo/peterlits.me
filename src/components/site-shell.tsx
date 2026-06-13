@@ -1,9 +1,35 @@
-import { useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
+import { X } from 'lucide-react'
 
 import type { Viewer } from '../lib/auth'
-import { login, logout } from '../lib/auth-rpc'
+import { login, logout as logoutRpc } from '../lib/auth-rpc'
+
+type AuthControlsContextValue = {
+  errorMessage: string | null
+  isLoginModalOpen: boolean
+  isPending: boolean
+  isUserMenuOpen: boolean
+  viewer: Viewer | null
+  closeLoginModal: () => void
+  openLoginModal: () => void
+  submitLogin: (formData: FormData) => void
+  toggleUserMenu: () => void
+  logout: () => void
+}
+
+const AuthControlsContext = createContext<AuthControlsContextValue | null>(null)
+
+function useAuthControls() {
+  const value = useContext(AuthControlsContext)
+
+  if (!value) {
+    throw new Error('AuthTopBar must be rendered inside SiteShell')
+  }
+
+  return value
+}
 
 function AvatarButton({
   displayName,
@@ -15,7 +41,7 @@ function AvatarButton({
   return (
     <button
       aria-label="打开用户菜单"
-      className="flex size-8 items-center justify-center rounded-full border-0 bg-transparent p-0"
+      className="flex size-6 items-center justify-center rounded-full border-0 bg-transparent p-0"
       onClick={onClick}
       type="button"
     >
@@ -41,49 +67,63 @@ function LoginModal({
     <div className="fixed inset-0 z-50 flex items-start justify-center px-4 pt-24">
       <button
         aria-label="关闭登录弹窗遮罩"
-        className="absolute inset-0 bg-black/20"
+        className="absolute inset-0 bg-transparent"
         data-testid="login-modal-overlay"
         onClick={onClose}
         type="button"
       />
-      <div className="relative w-full max-w-[320px] rounded-2xl border border-[#C9D2DE] bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.16)]">
+      <section
+        aria-labelledby="login-modal-title"
+        aria-modal="true"
+        className="relative flex w-full max-w-[320px] flex-col gap-6 overflow-clip rounded-[12px] border border-[#D1D5DB] bg-white p-6"
+        role="dialog"
+      >
         <button
           aria-label="关闭登录弹窗"
-          className="absolute right-4 top-3 border-0 bg-transparent p-0 text-[36px] leading-none text-[#475467]"
+          className="absolute right-[7px] top-[7px] flex items-center justify-center overflow-clip border-0 bg-transparent p-1 text-[#4B5563]"
           onClick={onClose}
           type="button"
         >
-          ×
+          <X aria-hidden="true" className="size-5" strokeWidth={2} />
         </button>
 
-        <h2 className="text-[28px] leading-none font-medium text-black">登录</h2>
+        <div className="flex h-16 w-full shrink-0 items-end">
+          <h2
+            className="m-0 text-[32px] leading-[normal] font-normal text-black"
+            id="login-modal-title"
+          >
+            登录
+          </h2>
+        </div>
 
         <form
-          className="mt-8 flex flex-col gap-4"
+          className="flex w-full flex-col gap-6"
           onSubmit={(event) => {
             event.preventDefault()
             onSubmit(new FormData(event.currentTarget))
           }}
         >
-          <label className="flex flex-col gap-2 text-[16px] leading-none text-black">
-            <span>用户名</span>
-            <input
-              className="h-9 rounded-[9px] border border-[#D0D5DD] px-3 text-[16px] text-black outline-none transition-colors focus:border-[#12A26B]"
-              name="username"
-              required
-              type="text"
-            />
-          </label>
+          <div className="flex flex-col gap-3">
+            <label className="flex flex-col gap-1 text-[12px] leading-[normal] font-normal text-black">
+              <span>用户名</span>
+              <input
+                className="h-[37px] rounded-[8px] border border-[#E5E7EB] px-3 text-[16px] text-black outline-none transition-colors focus:border-[#D1D5DB]"
+                name="username"
+                required
+                type="text"
+              />
+            </label>
 
-          <label className="flex flex-col gap-2 text-[16px] leading-none text-black">
-            <span>密码</span>
-            <input
-              className="h-9 rounded-[9px] border border-[#D0D5DD] px-3 text-[16px] text-black outline-none transition-colors focus:border-[#12A26B]"
-              name="password"
-              required
-              type="password"
-            />
-          </label>
+            <label className="flex flex-col gap-1 text-[12px] leading-[normal] font-normal text-black">
+              <span>密码</span>
+              <input
+                className="h-[37px] rounded-[8px] border border-[#E5E7EB] px-3 text-[16px] text-black outline-none transition-colors focus:border-[#D1D5DB]"
+                name="password"
+                required
+                type="password"
+              />
+            </label>
+          </div>
 
           {errorMessage ? (
             <p className="m-0 text-[14px] leading-5 text-[#B42318]">
@@ -91,9 +131,9 @@ function LoginModal({
             </p>
           ) : null}
 
-          <div className="mt-2 flex justify-end">
+          <div className="flex h-9 w-full shrink-0 items-center justify-end overflow-clip">
             <button
-              className="inline-flex h-9 min-w-[129px] items-center justify-center rounded-[4px] border-0 bg-[#079455] px-6 text-[24px] leading-none font-normal text-white disabled:cursor-not-allowed disabled:opacity-70"
+              className="inline-flex h-9 items-center justify-center rounded-[4px] border-0 bg-[#059669] px-8 text-[16px] leading-[normal] font-normal text-white disabled:cursor-not-allowed disabled:opacity-70"
               disabled={isPending}
               type="submit"
             >
@@ -101,7 +141,65 @@ function LoginModal({
             </button>
           </div>
         </form>
-      </div>
+      </section>
+    </div>
+  )
+}
+
+export function AuthTopBar({ leading }: { leading?: React.ReactNode } = {}) {
+  const {
+    isPending,
+    isUserMenuOpen,
+    logout,
+    openLoginModal,
+    toggleUserMenu,
+    viewer,
+  } = useAuthControls()
+
+  return (
+    <div
+      aria-label="顶部栏"
+      className="flex h-[64px] w-full shrink-0 items-center gap-3 bg-white px-6 py-[18px]"
+      role="toolbar"
+    >
+      {leading ?? null}
+      <div className="min-w-0 flex-1" />
+      {viewer ? (
+        <div className="relative flex w-6 shrink-0 items-center justify-between">
+          <AvatarButton
+            displayName={viewer.displayName}
+            onClick={toggleUserMenu}
+          />
+
+          {isUserMenuOpen ? (
+            <div className="absolute left-[-136px] top-8 flex w-[160px] min-w-[160px] flex-col gap-1.5 rounded-[12px] border border-[#D1D5DB] bg-white p-1.5">
+              <button
+                className="w-full rounded-[6px] border-0 bg-[#F3F4F6] p-1.5 text-left text-[14px] leading-[normal] font-normal text-black"
+                disabled={isPending}
+                type="button"
+              >
+                新建系列
+              </button>
+              <button
+                className="w-full rounded-[6px] border-0 bg-transparent px-1.5 py-1 text-left text-[14px] leading-[normal] font-normal text-black hover:bg-[#F9FAFB]"
+                disabled={isPending}
+                onClick={logout}
+                type="button"
+              >
+                登出
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <button
+          className="inline-flex h-7 items-center justify-center rounded-[6px] border border-[#E5E7EB] bg-white px-3 text-[14px] leading-none font-normal text-black hover:bg-[#F9FAFB] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#D1D5DB]"
+          onClick={openLoginModal}
+          type="button"
+        >
+          登录
+        </button>
+      )}
     </div>
   )
 }
@@ -115,7 +213,7 @@ export function SiteShell({
 }) {
   const router = useRouter()
   const loginAction = useServerFn(login)
-  const logoutAction = useServerFn(logout)
+  const logoutAction = useServerFn(logoutRpc)
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [isPending, setIsPending] = useState(false)
@@ -183,57 +281,36 @@ export function SiteShell({
     }
   }
 
+  function closeLoginModal() {
+    setErrorMessage(null)
+    setIsLoginModalOpen(false)
+  }
+
+  const authControls: AuthControlsContextValue = {
+    errorMessage,
+    isLoginModalOpen,
+    isPending,
+    isUserMenuOpen,
+    viewer,
+    closeLoginModal,
+    openLoginModal: () => setIsLoginModalOpen(true),
+    submitLogin: (formData) => void handleLoginSubmit(formData),
+    toggleUserMenu: () => setIsUserMenuOpen((value) => !value),
+    logout: () => void handleLogout(),
+  }
+
   return (
-    <>
-      <div className="relative">
-        <div className="pointer-events-none fixed inset-x-0 top-0 z-10 h-24 bg-gradient-to-b from-gray-50 via-gray-50/85 to-transparent" />
-        <div className="pointer-events-none fixed left-1/2 top-0 z-10 h-full w-full max-w-[800px] -translate-x-1/2 border-x border-gray-100" />
-        <div className="relative z-20 mx-auto flex w-full max-w-[800px] justify-end px-6 pt-5">
-          {viewer ? (
-            <div className="relative">
-              <AvatarButton
-                displayName={viewer.displayName}
-                onClick={() => setIsUserMenuOpen((value) => !value)}
-              />
-
-              {isUserMenuOpen ? (
-                <div className="absolute right-0 top-9 flex w-[162px] flex-col gap-1 rounded-[14px] border border-[#CBD5E1] bg-white p-3 shadow-[0_12px_40px_rgba(15,23,42,0.08)]">
-                  <button
-                    className="rounded-[8px] border-0 bg-transparent px-3 py-2 text-left text-[16px] leading-none text-black hover:bg-gray-50"
-                    disabled={isPending}
-                    onClick={() => void handleLogout()}
-                    type="button"
-                  >
-                    登出
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <button
-              className="inline-flex h-8 items-center justify-center rounded-[7px] border border-[#EAECF0] bg-[#F8FAFC] px-4 text-[16px] leading-none text-black hover:bg-white"
-              onClick={() => setIsLoginModalOpen(true)}
-              type="button"
-            >
-              登录
-            </button>
-          )}
-        </div>
-
-        {children}
-      </div>
+    <AuthControlsContext.Provider value={authControls}>
+      <div className="relative">{children}</div>
 
       {isLoginModalOpen ? (
         <LoginModal
           errorMessage={errorMessage}
           isPending={isPending}
-          onClose={() => {
-            setErrorMessage(null)
-            setIsLoginModalOpen(false)
-          }}
+          onClose={closeLoginModal}
           onSubmit={(formData) => void handleLoginSubmit(formData)}
         />
       ) : null}
-    </>
+    </AuthControlsContext.Provider>
   )
 }

@@ -1,7 +1,10 @@
 import '@tanstack/react-start/server-only'
 
 import bcrypt from 'bcryptjs'
-import { getRequestHeader, setResponseHeader } from '@tanstack/react-start/server'
+import {
+  getRequestHeader,
+  setResponseHeader,
+} from '@tanstack/react-start/server'
 import { env } from 'cloudflare:workers'
 import { jwtVerify, SignJWT } from 'jose'
 
@@ -22,14 +25,13 @@ type UserRecord = Viewer & {
 function isLocalHostname(host: string) {
   const hostname = host.split(':')[0].trim().toLowerCase()
   return (
-    hostname === 'localhost' ||
-    hostname === '127.0.0.1' ||
-    hostname === '[::1]'
+    hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]'
   )
 }
 
 function getJwtSecret() {
-  const secret = env.AUTH_JWT_SECRET.trim()
+  const secret =
+    typeof env.AUTH_JWT_SECRET === 'string' ? env.AUTH_JWT_SECRET.trim() : ''
 
   if (!secret) {
     throw new Error('AUTH_JWT_SECRET is not configured')
@@ -55,7 +57,10 @@ function shouldUseSecureCookie() {
 }
 
 export function setAuthCookie(token: string) {
-  setResponseHeader('set-cookie', buildAuthCookie(token, shouldUseSecureCookie()))
+  setResponseHeader(
+    'set-cookie',
+    buildAuthCookie(token, shouldUseSecureCookie()),
+  )
 }
 
 export function clearAuthCookieHeader() {
