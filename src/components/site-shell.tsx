@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { useRouter } from '@tanstack/react-router'
+import { Link, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 import { X } from 'lucide-react'
 
@@ -173,13 +173,15 @@ export function AuthTopBar({ leading }: { leading?: React.ReactNode } = {}) {
 
           {isUserMenuOpen ? (
             <div className="absolute left-[-136px] top-8 flex w-[160px] min-w-[160px] flex-col gap-1.5 rounded-[12px] border border-[#D1D5DB] bg-white p-1.5">
-              <button
-                className="w-full rounded-[6px] border-0 bg-transparent p-1.5 text-left text-[14px] leading-[normal] font-normal text-black hover:bg-[#F9FAFB]"
-                disabled={isPending}
-                type="button"
-              >
-                新建系列
-              </button>
+              {viewer.role === 'owner' ? (
+                <Link
+                  className="block w-full rounded-[6px] border-0 bg-transparent p-1.5 text-left text-[14px] leading-[normal] font-normal text-black hover:bg-[#F9FAFB]"
+                  onClick={toggleUserMenu}
+                  to="/series/new"
+                >
+                  新建系列
+                </Link>
+              ) : null}
               <button
                 className="w-full rounded-[6px] border-0 bg-transparent px-1.5 py-1 text-left text-[14px] leading-[normal] font-normal text-black hover:bg-[#F9FAFB]"
                 disabled={isPending}

@@ -86,7 +86,17 @@ function renderHomePage({
     ),
   })
 
-  const routeTree = rootRoute.addChildren([indexRoute, blogRoute])
+  const newSeriesRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/series/new',
+    component: () => null,
+  })
+
+  const routeTree = rootRoute.addChildren([
+    indexRoute,
+    blogRoute,
+    newSeriesRoute,
+  ])
 
   const router = createRouter({
     routeTree,
@@ -232,5 +242,23 @@ describe('HomePageView', () => {
     renderHomePage()
 
     expect(await screen.findByText('草稿')).toBeTruthy()
+  })
+
+  it('shows the 新建系列 entry for owners and links to /series/new', async () => {
+    renderHomePage({
+      viewer: { displayName: 'Peter', id: 1, role: 'owner', username: 'peter' },
+    })
+    ;(await screen.findByRole('button', { name: '打开用户菜单' })).click()
+    const entry = await screen.findByRole('link', { name: '新建系列' })
+    expect(entry.getAttribute('href')).toBe('/series/new')
+  })
+
+  it('does not show the 新建系列 entry for reviewers', async () => {
+    renderHomePage({
+      viewer: { displayName: 'Rev', id: 2, role: 'reviewer', username: 'rev' },
+    })
+    ;(await screen.findByRole('button', { name: '打开用户菜单' })).click()
+    await new Promise((r) => setTimeout(r, 0))
+    expect(screen.queryByRole('link', { name: '新建系列' })).toBeNull()
   })
 })
