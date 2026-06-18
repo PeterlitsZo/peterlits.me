@@ -11,6 +11,7 @@ import type {
   VisibleBlogPostChapterNode,
   VisibleBlogPostPageData,
 } from '../lib/blog-models'
+import remarkAdmonition from '../lib/remark-admonition'
 import remarkDefinitionList from '../lib/remark-definition-list'
 import { AuthTopBar } from './site-shell'
 
@@ -138,7 +139,12 @@ export function BlogPostMarkdown({ content }: { content: string }) {
   return (
     <ReactMarkdown
       rehypePlugins={[rehypeKatex]}
-      remarkPlugins={[remarkGfm, remarkMath, remarkDefinitionList]}
+      remarkPlugins={[
+        remarkGfm,
+        remarkMath,
+        remarkAdmonition,
+        remarkDefinitionList,
+      ]}
     >
       {content}
     </ReactMarkdown>

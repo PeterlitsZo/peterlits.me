@@ -404,6 +404,34 @@ describe('BlogPostMarkdown', () => {
     expect(container.textContent).not.toContain('$$')
   })
 
+  it('renders admonition-style blockquotes with a warning marker', () => {
+    const { container } = render(
+      <BlogPostMarkdown
+        content={['> [!warning]', '> foobar foobar foobar'].join('\n')}
+      />,
+    )
+
+    const admonition = container.querySelector(
+      '[data-admonition-type="warning"]',
+    )
+
+    expect(admonition).toBeTruthy()
+    expect(admonition?.textContent).toContain('Warning')
+    expect(admonition?.textContent).toContain('foobar foobar foobar')
+    expect(admonition?.textContent).not.toContain('[!warning]')
+  })
+
+  it('keeps regular blockquotes as plain blockquotes', () => {
+    const { container } = render(
+      <BlogPostMarkdown content={['> 普通引用内容'].join('\n')} />,
+    )
+
+    expect(container.querySelector('[data-admonition-type]')).toBeNull()
+    expect(container.querySelector('blockquote')?.textContent).toContain(
+      '普通引用内容',
+    )
+  })
+
   it('renders definition lists as dl, dt, and dd elements', () => {
     const { container } = render(
       <BlogPostMarkdown
