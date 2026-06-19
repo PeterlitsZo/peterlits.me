@@ -3,6 +3,7 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+  buildVisibleBlogSeriesBySlugQuery,
   buildVisibleBlogPostQueries,
   buildVisibleBlogSeriesQuery,
 } from './blog'
@@ -20,6 +21,34 @@ describe('buildVisibleBlogSeriesQuery', () => {
     expect(query.values).toEqual([
       'published',
       'archived',
+      'ongoing',
+      'completed',
+      'archived',
+    ])
+    expect((query.sql.match(/\?/g) ?? []).length).toBe(query.values.length)
+  })
+})
+
+
+describe('buildVisibleBlogSeriesBySlugQuery', () => {
+  it('binds post statuses before the slug to match placeholder order', () => {
+    const visibility: ViewerBlogVisibility = {
+      postStatuses: ['published', 'archived'],
+      seriesStatuses: ['ongoing', 'completed', 'archived'],
+    }
+
+    const query = buildVisibleBlogSeriesBySlugQuery({
+      visibility,
+      seriesSlug: 'bash',
+    })
+
+    // The correlated subquery (first_post_slug) sits in the SELECT list
+    // before the outer WHERE clause, so its post-status placeholders bind
+    // first, then the slug, then the outer series-status placeholders.
+    expect(query.values).toEqual([
+      'published',
+      'archived',
+      'bash',
       'ongoing',
       'completed',
       'archived',

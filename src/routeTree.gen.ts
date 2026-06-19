@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SeriesNewRouteImport } from './routes/series/new'
+import { Route as BlogsSeriesSlugIndexRouteImport } from './routes/blogs/$seriesSlug/index'
+import { Route as BlogsSeriesSlugNewRouteImport } from './routes/blogs/$seriesSlug/new'
 import { Route as BlogsSeriesSlugPostSlugRouteImport } from './routes/blogs/$seriesSlug/$postSlug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -23,6 +25,16 @@ const SeriesNewRoute = SeriesNewRouteImport.update({
   path: '/series/new',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogsSeriesSlugIndexRoute = BlogsSeriesSlugIndexRouteImport.update({
+  id: '/blogs/$seriesSlug/',
+  path: '/blogs/$seriesSlug/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogsSeriesSlugNewRoute = BlogsSeriesSlugNewRouteImport.update({
+  id: '/blogs/$seriesSlug/new',
+  path: '/blogs/$seriesSlug/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BlogsSeriesSlugPostSlugRoute = BlogsSeriesSlugPostSlugRouteImport.update({
   id: '/blogs/$seriesSlug/$postSlug',
   path: '/blogs/$seriesSlug/$postSlug',
@@ -33,30 +45,54 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/series/new': typeof SeriesNewRoute
   '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
+  '/blogs/$seriesSlug/new': typeof BlogsSeriesSlugNewRoute
+  '/blogs/$seriesSlug/': typeof BlogsSeriesSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/series/new': typeof SeriesNewRoute
   '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
+  '/blogs/$seriesSlug/new': typeof BlogsSeriesSlugNewRoute
+  '/blogs/$seriesSlug': typeof BlogsSeriesSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/series/new': typeof SeriesNewRoute
   '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
+  '/blogs/$seriesSlug/new': typeof BlogsSeriesSlugNewRoute
+  '/blogs/$seriesSlug/': typeof BlogsSeriesSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/series/new' | '/blogs/$seriesSlug/$postSlug'
+  fullPaths:
+    | '/'
+    | '/series/new'
+    | '/blogs/$seriesSlug/$postSlug'
+    | '/blogs/$seriesSlug/new'
+    | '/blogs/$seriesSlug/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/series/new' | '/blogs/$seriesSlug/$postSlug'
-  id: '__root__' | '/' | '/series/new' | '/blogs/$seriesSlug/$postSlug'
+  to:
+    | '/'
+    | '/series/new'
+    | '/blogs/$seriesSlug/$postSlug'
+    | '/blogs/$seriesSlug/new'
+    | '/blogs/$seriesSlug'
+  id:
+    | '__root__'
+    | '/'
+    | '/series/new'
+    | '/blogs/$seriesSlug/$postSlug'
+    | '/blogs/$seriesSlug/new'
+    | '/blogs/$seriesSlug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SeriesNewRoute: typeof SeriesNewRoute
   BlogsSeriesSlugPostSlugRoute: typeof BlogsSeriesSlugPostSlugRoute
+  BlogsSeriesSlugNewRoute: typeof BlogsSeriesSlugNewRoute
+  BlogsSeriesSlugIndexRoute: typeof BlogsSeriesSlugIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -75,6 +111,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SeriesNewRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blogs/$seriesSlug/': {
+      id: '/blogs/$seriesSlug/'
+      path: '/blogs/$seriesSlug'
+      fullPath: '/blogs/$seriesSlug/'
+      preLoaderRoute: typeof BlogsSeriesSlugIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blogs/$seriesSlug/new': {
+      id: '/blogs/$seriesSlug/new'
+      path: '/blogs/$seriesSlug/new'
+      fullPath: '/blogs/$seriesSlug/new'
+      preLoaderRoute: typeof BlogsSeriesSlugNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/blogs/$seriesSlug/$postSlug': {
       id: '/blogs/$seriesSlug/$postSlug'
       path: '/blogs/$seriesSlug/$postSlug'
@@ -89,6 +139,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SeriesNewRoute: SeriesNewRoute,
   BlogsSeriesSlugPostSlugRoute: BlogsSeriesSlugPostSlugRoute,
+  BlogsSeriesSlugNewRoute: BlogsSeriesSlugNewRoute,
+  BlogsSeriesSlugIndexRoute: BlogsSeriesSlugIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

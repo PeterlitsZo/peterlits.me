@@ -86,6 +86,12 @@ function renderHomePage({
     ),
   })
 
+  const seriesRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/blogs/$seriesSlug',
+    component: () => null,
+  })
+
   const newSeriesRoute = createRoute({
     getParentRoute: () => rootRoute,
     path: '/series/new',
@@ -95,6 +101,7 @@ function renderHomePage({
   const routeTree = rootRoute.addChildren([
     indexRoute,
     blogRoute,
+    seriesRoute,
     newSeriesRoute,
   ])
 
@@ -129,10 +136,12 @@ describe('HomePageView', () => {
     const linkedSeries = (await screen.findByText('我知道的 TCP')).closest('a')
 
     expect(linkedSeries?.getAttribute('href')).toBe('/blogs/tcp/intro')
-    expect(
-      screen.queryByRole('link', { name: '浅析 Tokio 异步运行时' }),
-    ).toBeNull()
-    expect(screen.getByText('浅析 Tokio 异步运行时')).toBeTruthy()
+
+    // Series without a first post now link to the series overview page.
+    const emptySeries = (
+      await screen.findByText('浅析 Tokio 异步运行时')
+    ).closest('a')
+    expect(emptySeries?.getAttribute('href')).toBe('/blogs/tokio')
   })
 
   it('shows the login button and opens the modal for anonymous viewers', async () => {

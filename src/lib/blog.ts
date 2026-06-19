@@ -64,6 +64,44 @@ export function buildVisibleBlogSeriesQuery(visibility: ViewerBlogVisibility) {
   }
 }
 
+export function buildVisibleBlogSeriesBySlugQuery({
+  visibility,
+  seriesSlug,
+}: {
+  visibility: ViewerBlogVisibility
+  seriesSlug: string
+}) {
+  const postStatusClause = createInClause(visibility.postStatuses)
+  const seriesStatusClause = createInClause(visibility.seriesStatuses)
+
+  return {
+    sql: `
+      SELECT
+        blog_series.slug,
+        blog_series.title,
+        blog_series.description,
+        (
+          SELECT blog_posts.slug
+          FROM blog_posts
+          WHERE blog_posts.series_id = blog_series.id
+            AND blog_posts.status IN (${postStatusClause})
+          ORDER BY blog_posts.position ASC, blog_posts.id ASC
+          LIMIT 1
+        ) AS first_post_slug,
+        blog_series.status AS status
+      FROM blog_series
+      WHERE blog_series.slug = ?
+        AND blog_series.status IN (${seriesStatusClause})
+      LIMIT 1
+    `,
+    values: [
+      ...visibility.postStatuses,
+      seriesSlug,
+      ...visibility.seriesStatuses,
+    ],
+  }
+}
+
 export function buildVisibleBlogPostQueries({
   visibility,
   seriesId,
@@ -143,6 +181,29 @@ export const getVisibleBlogSeries = createServerFn({ method: 'GET' }).handler(
     return results
   },
 )
+
+export const getVisibleBlogSeriesBySlug = createServerFn({ method: 'GET' })
+  .validator((data: { seriesSlug: string }) => data)
+  .handler(async ({ data }) => {
+    const { getViewerFromRequest } = await import('./auth.server')
+    const viewer = await getViewerFromRequest()
+    const visibility = getVisibility(viewer)
+    const query = buildVisibleBlogSeriesBySlugQuery({
+      visibility,
+      seriesSlug: data.seriesSlug,
+    })
+
+    const series = await getDb()
+      .prepare(query.sql)
+      .bind(...query.values)
+      .first<VisibleBlogSeriesListItem>()
+
+    if (!series) {
+      throw notFound()
+    }
+
+    return series
+  })
 
 export const getVisibleBlogPost = createServerFn({ method: 'GET' })
   .validator((data: { seriesSlug: string; postSlug: string }) => data)

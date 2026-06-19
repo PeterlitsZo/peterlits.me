@@ -45,9 +45,14 @@ export function HomePageView({
 
             if (!series.first_post_slug) {
               return (
-                <div className="px-1 py-1" key={series.slug}>
+                <Link
+                  className="rounded-[6px] px-2 py-1 text-inherit no-underline transition-colors hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
+                  key={series.slug}
+                  params={{ seriesSlug: series.slug }}
+                  to="/blogs/$seriesSlug"
+                >
                   {content}
-                </div>
+                </Link>
               )
             }
 
