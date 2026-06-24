@@ -1,15 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-
-import { HomePageView } from '../components/home-page'
-import { getVisibleBlogSeries } from '../lib/blog'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/')({
-  loader: () => getVisibleBlogSeries(),
-  component: Home,
+  beforeLoad: () => {
+    throw redirect({ to: '/blogs' })
+  },
 })
-
-function Home() {
-  const blogSeries = Route.useLoaderData()
-
-  return <HomePageView blogSeries={blogSeries} />
-}

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { Link, useRouter } from '@tanstack/react-router'
+import { Link, useLocation, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 import { X } from 'lucide-react'
 
@@ -49,6 +49,56 @@ function AvatarButton({
         {displayName.slice(0, 1) || '用'}
       </span>
     </button>
+  )
+}
+
+type NavTab = {
+  label: string
+  to: string
+  matchPrefix: string
+}
+
+const NAV_TABS: NavTab[] = [
+  { label: '博客', to: '/blogs', matchPrefix: '/blogs' },
+  { label: '诗', to: '/poems', matchPrefix: '/poems' },
+  { label: '读书笔记', to: '/notes', matchPrefix: '/notes' },
+]
+
+function NavTabs() {
+  const location = useLocation()
+  const pathname = location.pathname
+
+  return (
+    <nav aria-label="主导航" className="flex shrink-0 items-center gap-[32px]">
+      {NAV_TABS.map((tab) => {
+        const isActive = pathname.startsWith(tab.matchPrefix)
+
+        return (
+          <Link
+            key={tab.to}
+            to={tab.to}
+            className="flex shrink-0 flex-col items-center justify-center gap-[4px] no-underline"
+          >
+            <p
+              className={
+                'whitespace-nowrap text-[16px] leading-normal ' +
+                (isActive
+                  ? 'font-semibold text-[#111827]'
+                  : 'font-normal text-[#6b7280]')
+              }
+            >
+              {tab.label}
+            </p>
+            <div
+              className={
+                'h-[2px] w-[24px] rounded-[1px] ' +
+                (isActive ? 'bg-[#111827]' : 'bg-transparent')
+              }
+            />
+          </Link>
+        )
+      })}
+    </nav>
   )
 }
 
@@ -146,7 +196,7 @@ function LoginModal({
   )
 }
 
-export function AuthTopBar({ leading }: { leading?: React.ReactNode } = {}) {
+export function AuthTopBar() {
   const {
     isPending,
     isUserMenuOpen,
@@ -162,7 +212,7 @@ export function AuthTopBar({ leading }: { leading?: React.ReactNode } = {}) {
       className="flex h-[64px] w-full shrink-0 items-center gap-3 bg-white px-6 py-[18px]"
       role="toolbar"
     >
-      {leading ?? null}
+      <NavTabs />
       <div className="min-w-0 flex-1" />
       {viewer ? (
         <div className="relative flex w-6 shrink-0 items-center justify-between">

@@ -1,4 +1,4 @@
-import { BookOpen, ChevronLeft } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
 import type { VisibleBlogSeriesListItem } from '../lib/blog-models'
@@ -20,23 +20,7 @@ export function BlogSeriesPageView({
         aria-label={series.title}
         className="mx-auto flex min-h-screen w-full max-w-[800px] flex-col overflow-clip border-x border-[#F3F4F6] bg-white"
       >
-        <AuthTopBar
-          leading={
-            <Link
-              className="flex items-center gap-3 text-black no-underline transition-colors hover:text-gray-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-400"
-              to="/"
-            >
-              <span className="flex size-6 items-center justify-center rounded-[4px] bg-gray-100">
-                <ChevronLeft
-                  aria-hidden="true"
-                  className="size-5"
-                  strokeWidth={1.75}
-                />
-              </span>
-              <span className="text-[16px] leading-none font-normal">返回</span>
-            </Link>
-          }
-        />
+        <AuthTopBar />
 
         <header className="flex h-[300px] shrink-0 flex-col justify-end overflow-clip p-6">
           <h1 className="text-[48px] leading-none font-normal text-[#030712]">

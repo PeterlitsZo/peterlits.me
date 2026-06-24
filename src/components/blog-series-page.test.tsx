@@ -94,14 +94,6 @@ describe('BlogSeriesPageView', () => {
     expect(screen.getByText('或者说，大家都知道的 TCP 知识')).toBeTruthy()
   })
 
-  it('renders a back link to the home page', async () => {
-    renderSeriesPage()
-
-    const backLink = await screen.findByRole('link', { name: '返回' })
-
-    expect(backLink.getAttribute('href')).toBe('/')
-  })
-
   it('renders the empty-state BookOpen icon', async () => {
     renderSeriesPage()
 

@@ -643,14 +643,6 @@ describe('BlogPostSiblingNavigation', () => {
 })
 
 describe('BlogPostPageView', () => {
-  it('renders a back link to the home page', async () => {
-    renderBlogPostPage()
-
-    const backLink = await screen.findByRole('link', { name: '返回' })
-
-    expect(backLink.getAttribute('href')).toBe('/')
-  })
-
   it('renders previous and next post navigation after the article content', async () => {
     renderBlogPostPage()
 
