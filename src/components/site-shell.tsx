@@ -224,13 +224,22 @@ export function AuthTopBar() {
           {isUserMenuOpen ? (
             <div className="absolute left-[-136px] top-8 flex w-[160px] min-w-[160px] flex-col gap-1.5 rounded-[12px] border border-[#D1D5DB] bg-white p-1.5">
               {viewer.role === 'owner' ? (
-                <Link
-                  className="block w-full rounded-[6px] border-0 bg-transparent p-1.5 text-left text-[14px] leading-[normal] font-normal text-black hover:bg-[#F9FAFB]"
-                  onClick={toggleUserMenu}
-                  to="/series/new"
-                >
-                  新建系列
-                </Link>
+                <>
+                  <Link
+                    className="block w-full rounded-[6px] border-0 bg-[#F9FAFB] p-1.5 text-left text-[14px] leading-[normal] font-normal text-black hover:bg-[#F3F4F6]"
+                    onClick={toggleUserMenu}
+                    to="/series/new"
+                  >
+                    新建博客系列
+                  </Link>
+                  <Link
+                    className="block w-full rounded-[6px] border-0 bg-transparent p-1.5 text-left text-[14px] leading-[normal] font-normal text-black hover:bg-[#F9FAFB]"
+                    onClick={toggleUserMenu}
+                    to="/poems/new"
+                  >
+                    新建诗
+                  </Link>
+                </>
               ) : null}
               <button
                 className="w-full rounded-[6px] border-0 bg-transparent px-1.5 py-1 text-left text-[14px] leading-[normal] font-normal text-black hover:bg-[#F9FAFB]"

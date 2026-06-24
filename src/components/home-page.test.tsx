@@ -258,7 +258,7 @@ describe('HomePageView', () => {
       viewer: { displayName: 'Peter', id: 1, role: 'owner', username: 'peter' },
     })
     ;(await screen.findByRole('button', { name: '打开用户菜单' })).click()
-    const entry = await screen.findByRole('link', { name: '新建系列' })
+    const entry = await screen.findByRole('link', { name: '新建博客系列' })
     expect(entry.getAttribute('href')).toBe('/series/new')
   })
 
@@ -268,6 +268,6 @@ describe('HomePageView', () => {
     })
     ;(await screen.findByRole('button', { name: '打开用户菜单' })).click()
     await new Promise((r) => setTimeout(r, 0))
-    expect(screen.queryByRole('link', { name: '新建系列' })).toBeNull()
+    expect(screen.queryByRole('link', { name: '新建博客系列' })).toBeNull()
   })
 })
