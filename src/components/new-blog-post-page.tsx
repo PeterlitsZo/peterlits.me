@@ -10,16 +10,28 @@ type SubmitState =
   | { kind: 'error'; message: string }
 
 export function NewBlogPostPageView({
+  initialContent = '',
+  initialSlug = '',
+  initialTitle = '',
+  parentPostSlug,
   seriesSlug,
+  submitLabel = '新建',
+  titleText = '新建博客',
   onSubmit,
 }: {
+  initialContent?: string
+  initialSlug?: string
+  initialTitle?: string
+  parentPostSlug?: string
   seriesSlug: string
+  submitLabel?: string
+  titleText?: string
   onSubmit: (input: CreateBlogPostInput) => Promise<{ slug: string }>
 }) {
   const navigate = useNavigate()
-  const [title, setTitle] = useState('')
-  const [slug, setSlug] = useState('')
-  const [content, setContent] = useState('')
+  const [title, setTitle] = useState(initialTitle)
+  const [slug, setSlug] = useState(initialSlug)
+  const [content, setContent] = useState(initialContent)
   const [state, setState] = useState<SubmitState>({ kind: 'idle' })
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -34,6 +46,7 @@ export function NewBlogPostPageView({
         title: title.trim(),
         slug: slug.trim(),
         content: content.trim(),
+        ...(parentPostSlug ? { parentPostSlug } : {}),
       })
       await navigate({
         to: '/blogs/$seriesSlug/$postSlug',
@@ -58,7 +71,7 @@ export function NewBlogPostPageView({
 
         <header className="flex h-[300px] shrink-0 flex-col justify-end overflow-clip p-6">
           <h1 className="text-[48px] leading-none font-normal text-[#030712]">
-            新建博客
+            {titleText}
           </h1>
           <p className="mt-2 text-[24px] leading-none font-normal text-[#4A5565]">
             吸收、沉淀、输出。
@@ -131,7 +144,7 @@ export function NewBlogPostPageView({
               disabled={isPending}
               type="submit"
             >
-              新建
+              {submitLabel}
             </button>
           </div>
         </form>

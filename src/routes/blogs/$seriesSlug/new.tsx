@@ -6,6 +6,9 @@ import { getViewer } from '../../../lib/auth-rpc'
 import { createBlogPost } from '../../../lib/post-rpc'
 
 export const Route = createFileRoute('/blogs/$seriesSlug/new')({
+  validateSearch: (search: Record<string, unknown>) => ({
+    parent: typeof search.parent === 'string' ? search.parent : undefined,
+  }),
   beforeLoad: async () => {
     const viewer = await getViewer()
     if (!viewer || viewer.role !== 'owner') {
@@ -17,10 +20,12 @@ export const Route = createFileRoute('/blogs/$seriesSlug/new')({
 
 function NewBlogPostRoute() {
   const { seriesSlug } = Route.useParams()
+  const { parent } = Route.useSearch()
   const createPost = useServerFn(createBlogPost)
 
   return (
     <NewBlogPostPageView
+      parentPostSlug={parent}
       seriesSlug={seriesSlug}
       onSubmit={(input) => createPost({ data: { seriesSlug, ...input } })}
     />

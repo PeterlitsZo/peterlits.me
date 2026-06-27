@@ -81,7 +81,7 @@ function parseAdmonition(node: MarkdownNode) {
 
   const [firstChild, ...restChildren] = node.children
 
-  if (!firstChild || firstChild.type !== 'paragraph' || !firstChild.children) {
+  if (firstChild.type !== 'paragraph' || !firstChild.children) {
     return null
   }
 

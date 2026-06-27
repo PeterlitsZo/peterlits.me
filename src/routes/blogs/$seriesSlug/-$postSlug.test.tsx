@@ -6,7 +6,13 @@ import {
   createRoute,
   createRouter,
 } from '@tanstack/react-router'
-import { cleanup, render, screen } from '@testing-library/react'
+import {
+  cleanup,
+  createEvent,
+  fireEvent,
+  render,
+  screen,
+} from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -14,6 +20,9 @@ import {
   BlogPostMarkdown,
   BlogPostPageView,
   BlogPostSiblingNavigation,
+  buildReorderPayloadFromFlatItems,
+  canMoveFlatChapter,
+  flattenEditableChapterTree,
   flattenChapterTree,
   getChapterItems,
   getSiblingPosts,
@@ -241,6 +250,7 @@ describe('getChapterItems', () => {
     expect(items).toEqual([
       {
         kind: 'post',
+        id: 1,
         slug: 'intro',
         title: '起步',
         label: '1',
@@ -250,6 +260,7 @@ describe('getChapterItems', () => {
       },
       {
         kind: 'post',
+        id: 2,
         slug: 'runtime',
         title: 'Runtime',
         label: '2',
@@ -259,6 +270,7 @@ describe('getChapterItems', () => {
       },
       {
         kind: 'post',
+        id: 3,
         slug: 'handshake',
         title: '三次握手',
         label: '2.1',
@@ -356,6 +368,81 @@ describe('flattenChapterTree', () => {
       'runtime',
       'handshake',
     ])
+  })
+})
+
+describe('editable chapter reorder helpers', () => {
+  const chapters = [
+    {
+      id: 1,
+      slug: 'intro',
+      title: '起步',
+      position: 1,
+      status: 'published' as const,
+      children: [],
+    },
+    {
+      id: 2,
+      slug: 'runtime',
+      title: 'Runtime',
+      position: 2,
+      status: 'published' as const,
+      children: [
+        {
+          id: 3,
+          slug: 'handshake',
+          title: '三次握手',
+          position: 1,
+          status: 'published' as const,
+          children: [],
+        },
+      ],
+    },
+  ]
+
+  it('flattens nested editable chapters with depth and parent id', () => {
+    expect(flattenEditableChapterTree(chapters)).toEqual([
+      expect.objectContaining({ id: 1, depth: 0, parentPostId: null }),
+      expect.objectContaining({ id: 2, depth: 0, parentPostId: null }),
+      expect.objectContaining({ id: 3, depth: 1, parentPostId: 2 }),
+    ])
+  })
+
+  it('builds payload after moving a root post under the previous root post', () => {
+    const flat = flattenEditableChapterTree(chapters)
+    const moved = [
+      { ...flat[1], depth: 0 },
+      { ...flat[0], depth: 1 },
+      { ...flat[2], depth: 1 },
+    ]
+
+    expect(buildReorderPayloadFromFlatItems(moved)).toEqual([
+      { id: 2, parentPostId: null, position: 1 },
+      { id: 1, parentPostId: 2, position: 1 },
+      { id: 3, parentPostId: 2, position: 2 },
+    ])
+  })
+
+  it('builds payload after moving a child post back to the root level', () => {
+    const flat = flattenEditableChapterTree(chapters)
+    const moved = [
+      { ...flat[0], depth: 0 },
+      { ...flat[2], depth: 0 },
+      { ...flat[1], depth: 0 },
+    ]
+
+    expect(buildReorderPayloadFromFlatItems(moved)).toEqual([
+      { id: 1, parentPostId: null, position: 1 },
+      { id: 3, parentPostId: null, position: 2 },
+      { id: 2, parentPostId: null, position: 3 },
+    ])
+  })
+
+  it('rejects moving a post into its own descendant', () => {
+    const flat = flattenEditableChapterTree(chapters)
+
+    expect(canMoveFlatChapter(flat, 1, 2)).toBe(false)
+    expect(canMoveFlatChapter(flat, 2, 1)).toBe(true)
   })
 })
 
@@ -512,6 +599,7 @@ describe('BlogPostChapterList', () => {
         chapterItems={[
           {
             kind: 'post',
+            id: 1,
             slug: 'intro',
             title: '起步',
             label: '1',
@@ -521,6 +609,7 @@ describe('BlogPostChapterList', () => {
           },
           {
             kind: 'post',
+            id: 2,
             slug: 'handshake',
             title: '三次握手',
             label: '2.1',
@@ -555,6 +644,7 @@ describe('BlogPostChapterList', () => {
         chapterItems={[
           {
             kind: 'post',
+            id: 1,
             slug: 'intro',
             title: '起步',
             label: '1',
@@ -564,6 +654,7 @@ describe('BlogPostChapterList', () => {
           },
           {
             kind: 'post',
+            id: 2,
             slug: 'runtime',
             title: '内部原理',
             label: '2',
@@ -573,6 +664,7 @@ describe('BlogPostChapterList', () => {
           },
           {
             kind: 'post',
+            id: 3,
             slug: 'connection',
             title: '连接管理',
             label: '2.1',
@@ -587,14 +679,106 @@ describe('BlogPostChapterList', () => {
 
     const currentNumber = await screen.findByText('1')
     const currentRow = currentNumber.closest('div')
-    const nestedLink = await screen.findByRole('link', {
-      name: '2.1连接管理',
-    })
+    const nestedRow = await screen.findByTestId('chapter-row-connection')
 
     expect(currentNumber.className).toContain('size-[22px]')
     expect(currentNumber.className).toContain('rounded-[8px]')
     expect(currentRow?.style.paddingLeft).toBe('6px')
-    expect(nestedLink.style.paddingLeft).toBe('32px')
+    expect(nestedRow.style.paddingLeft).toBe('32px')
+  })
+
+  it('uses the Figma draft tag style', async () => {
+    renderWithRouter(() => (
+      <BlogPostChapterList
+        chapterItems={[
+          {
+            kind: 'post',
+            id: 1,
+            slug: 'intro',
+            title: '起步',
+            label: '1',
+            depth: 0,
+            isCurrent: true,
+            status: 'draft',
+          },
+        ]}
+        seriesSlug="tcp"
+      />
+    ))
+
+    const draftBadge = await screen.findByText('草稿')
+
+    expect(draftBadge.className).toContain('h-[24px]')
+    expect(draftBadge.className).toContain('rounded-[8px]')
+    expect(draftBadge.className).toContain('border-[#9CA3AF]')
+    expect(draftBadge.className).toContain('bg-[#E5E7EB]')
+    expect(draftBadge.className).toContain('text-black')
+  })
+
+  it('shows owner-only edit, child creation, drag, and root creation controls', async () => {
+    renderWithRouter(() => (
+      <BlogPostChapterList
+        chapterItems={[
+          {
+            kind: 'post',
+            id: 1,
+            slug: 'intro',
+            title: '起步',
+            label: '1',
+            depth: 0,
+            isCurrent: true,
+            status: 'published',
+          },
+        ]}
+        isOwner={true}
+        seriesSlug="tcp"
+      />
+    ))
+
+    expect(
+      (
+        await screen.findByRole('link', { name: '编辑博客：起步' })
+      ).getAttribute('href'),
+    ).toBe('/blogs/tcp/intro/edit')
+    expect(
+      (
+        await screen.findByRole('link', { name: '添加子博客：起步' })
+      ).getAttribute('href'),
+    ).toBe('/blogs/tcp/new?parent=intro')
+    expect(await screen.findByRole('button', { name: '拖动排序：起步' })).toBeTruthy()
+    expect(
+      (await screen.findByRole('link', { name: '新建博客' })).getAttribute(
+        'href',
+      ),
+    ).toBe('/blogs/tcp/new')
+  })
+
+  it('hides management controls for non-owners', async () => {
+    renderWithRouter(() => (
+      <BlogPostChapterList
+        chapterItems={[
+          {
+            kind: 'post',
+            id: 1,
+            slug: 'intro',
+            title: '起步',
+            label: '1',
+            depth: 0,
+            isCurrent: true,
+            status: 'published',
+          },
+        ]}
+        isOwner={false}
+        seriesSlug="tcp"
+      />
+    ))
+
+    await screen.findByText('起步')
+
+    expect(screen.queryByRole('link', { name: '编辑博客：起步' })).toBeNull()
+    expect(screen.queryByRole('link', { name: '添加子博客：起步' })).toBeNull()
+    expect(screen.queryByRole('button', { name: '拖动排序：起步' })).toBeNull()
+    expect(screen.queryByRole('link', { name: '新建博客' })).toBeNull()
   })
 })
 
@@ -739,5 +923,102 @@ describe('BlogPostPageView', () => {
 
     expect(await screen.findByRole('button', { name: '登出' })).toBeTruthy()
     expect(screen.queryByText('Reviewer')).toBeNull()
+  })
+
+  it('passes a cross-level reorder payload when an owner drops a chapter row', async () => {
+    const reorderCalls: Array<
+      Array<{ id: number; parentPostId: number | null; position: number }>
+    > = []
+
+    renderWithRouter(
+      () => (
+        <BlogPostPageView
+          viewer={{
+            displayName: 'Peter',
+            id: 1,
+            role: 'owner',
+            username: 'peter',
+          }}
+          onReorder={async (posts) => {
+            reorderCalls.push(posts)
+          }}
+          page={{
+            series_slug: 'tcp',
+            series_title: '我知道的 TCP',
+            series_description: '或者说，大家都知道的 TCP 知识',
+            series_status: 'completed',
+            post_slug: 'intro',
+            post_title: 'Runtime',
+            post_summary: '从连接语义开始',
+            post_content: '## 起步\n\nTCP 是一种面向连接的协议。',
+            post_position: 1,
+            post_status: 'published',
+            chapters: [
+              {
+                id: 1,
+                slug: 'intro',
+                title: '起步',
+                position: 1,
+                status: 'published',
+                children: [],
+              },
+              {
+                id: 2,
+                slug: 'runtime',
+                title: 'Runtime',
+                position: 2,
+                status: 'published',
+                children: [
+                  {
+                    id: 3,
+                    slug: 'handshake',
+                    title: '三次握手',
+                    position: 1,
+                    status: 'published',
+                    children: [],
+                  },
+                ],
+              },
+            ],
+          }}
+        />
+      ),
+      {
+        viewer: {
+          displayName: 'Peter',
+          id: 1,
+          role: 'owner',
+          username: 'peter',
+        },
+      },
+    )
+
+    const dragHandle = await screen.findByRole('button', {
+      name: '拖动排序：起步',
+    })
+    const targetRow = await screen.findByTestId('chapter-row-runtime')
+
+    fireEvent.dragStart(dragHandle, {
+      dataTransfer: {
+        effectAllowed: '',
+        setData: () => {},
+      },
+    })
+    fireEvent.dragOver(targetRow, {
+      dataTransfer: {
+        dropEffect: '',
+      },
+    })
+    const dropEvent = createEvent.drop(targetRow)
+    Object.defineProperty(dropEvent, 'clientX', { value: 32 })
+    fireEvent(targetRow, dropEvent)
+
+    expect(reorderCalls).toEqual([
+      [
+        { id: 2, parentPostId: null, position: 1 },
+        { id: 1, parentPostId: 2, position: 1 },
+        { id: 3, parentPostId: 2, position: 2 },
+      ],
+    ])
   })
 })

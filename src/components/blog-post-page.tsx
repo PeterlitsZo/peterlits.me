@@ -1,4 +1,6 @@
+import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
+import { BadgePlus, GripVertical, Pencil } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
@@ -10,6 +12,7 @@ import type {
   VisibleBlogPostChapterNode,
   VisibleBlogPostPageData,
 } from '../lib/blog-models'
+import type { Viewer } from '../lib/auth'
 import remarkAdmonition from '../lib/remark-admonition'
 import remarkDefinitionList from '../lib/remark-definition-list'
 import { AuthTopBar } from './site-shell'
@@ -19,6 +22,7 @@ type FlatChapter = Omit<VisibleBlogPostChapterNode, 'children'>
 type ChapterItem =
   | {
       kind: 'post'
+      id: number
       slug: string
       title: string
       label: string
@@ -32,6 +36,22 @@ type ChapterItem =
       depth: number
     }
 
+export type FlatEditableChapterItem = {
+  id: number
+  slug: string
+  title: string
+  position: number
+  status: BlogPostStatus
+  depth: number
+  parentPostId: number | null
+}
+
+export type ReorderBlogPostPayloadItem = {
+  id: number
+  parentPostId: number | null
+  position: number
+}
+
 export function flattenChapterTree(
   chapters: VisibleBlogPostChapterNode[],
 ): FlatChapter[] {
@@ -44,6 +64,98 @@ export function flattenChapterTree(
   }
 
   return flattened
+}
+
+export function flattenEditableChapterTree(
+  chapters: VisibleBlogPostChapterNode[],
+  depth = 0,
+  parentPostId: number | null = null,
+): FlatEditableChapterItem[] {
+  return chapters.flatMap((chapter) => [
+    {
+      id: chapter.id,
+      slug: chapter.slug,
+      title: chapter.title,
+      position: chapter.position,
+      status: chapter.status,
+      depth,
+      parentPostId,
+    },
+    ...flattenEditableChapterTree(chapter.children, depth + 1, chapter.id),
+  ])
+}
+
+function findParentIdForFlatItem(
+  items: FlatEditableChapterItem[],
+  index: number,
+) {
+  const item = items[index]
+
+  if (item.depth === 0) {
+    return null
+  }
+
+  for (let cursor = index - 1; cursor >= 0; cursor -= 1) {
+    if (items[cursor].depth === item.depth - 1) {
+      return items[cursor].id
+    }
+  }
+
+  return null
+}
+
+export function buildReorderPayloadFromFlatItems(
+  items: FlatEditableChapterItem[],
+): ReorderBlogPostPayloadItem[] {
+  const nextPositionByParent = new Map<number | null, number>()
+
+  return items.map((item, index) => {
+    const parentPostId = findParentIdForFlatItem(items, index)
+    const position = nextPositionByParent.get(parentPostId) ?? 1
+    nextPositionByParent.set(parentPostId, position + 1)
+
+    return {
+      id: item.id,
+      parentPostId,
+      position,
+    }
+  })
+}
+
+export function canMoveFlatChapter(
+  items: FlatEditableChapterItem[],
+  sourceIndex: number,
+  targetIndex: number,
+) {
+  if (
+    sourceIndex < 0 ||
+    sourceIndex >= items.length ||
+    targetIndex < 0 ||
+    targetIndex >= items.length
+  ) {
+    return false
+  }
+
+  const source = items[sourceIndex]
+  const target = items[targetIndex]
+
+  if (targetIndex <= sourceIndex) {
+    return true
+  }
+
+  for (let cursor = sourceIndex + 1; cursor < items.length; cursor += 1) {
+    const candidate = items[cursor]
+
+    if (candidate.depth <= source.depth) {
+      return true
+    }
+
+    if (cursor === targetIndex) {
+      return false
+    }
+  }
+
+  return true
 }
 
 function buildChapterItems(
@@ -60,6 +172,7 @@ function buildChapterItems(
     return [
       {
         kind: 'post' as const,
+        id: chapter.id,
         slug: chapter.slug,
         title: chapter.title,
         label,
@@ -74,7 +187,7 @@ function buildChapterItems(
 
 function DraftBadge({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-[#F2F4F7] px-2 py-1 text-[12px] leading-none font-medium text-[#475467]">
+    <span className="inline-flex h-[24px] items-center justify-center rounded-[8px] border border-[#9CA3AF] bg-[#E5E7EB] px-3 text-[12px] leading-none font-normal text-black">
       {children}
     </span>
   )
@@ -152,18 +265,30 @@ export function BlogPostMarkdown({ content }: { content: string }) {
 
 export function BlogPostChapterList({
   chapterItems,
+  chapters = [],
+  isOwner = false,
+  onReorder,
   seriesSlug,
 }: {
   chapterItems: ChapterItem[]
+  chapters?: VisibleBlogPostChapterNode[]
+  isOwner?: boolean
+  onReorder?: (posts: ReorderBlogPostPayloadItem[]) => Promise<void>
   seriesSlug: string
 }) {
+  const [draggedId, setDraggedId] = useState<number | null>(null)
+  const [reorderError, setReorderError] = useState<string | null>(null)
+  const editableItems = useMemo(
+    () => flattenEditableChapterTree(chapters),
+    [chapters],
+  )
   const numberBaseClassName =
     'flex size-[22px] shrink-0 items-center justify-center rounded-[8px] text-[13px] leading-none font-normal tracking-[-0.65px] text-white'
   const titleBaseClassName =
     'shrink-0 whitespace-nowrap text-[20px] leading-[24px] font-normal'
 
   return (
-    <div className="flex w-full max-w-[500px] flex-col items-start gap-1.5 overflow-hidden rounded-[12px] bg-gray-50 p-3">
+    <div className="flex w-full max-w-[500px] flex-col items-start gap-1.5 overflow-hidden rounded-[12px] bg-[#F9FAFB] p-3">
       {chapterItems.map((item) => {
         const isCurrent = item.kind === 'post' && item.isCurrent
         const numberClassName = isCurrent
@@ -172,57 +297,180 @@ export function BlogPostChapterList({
         const titleClassName = isCurrent ? 'text-gray-950' : 'text-gray-500'
         const paddingLeft = `${6 + item.depth * 26}px`
 
-        const content =
-          item.kind === 'post' ? (
-            <>
-              <span className={`${numberBaseClassName} ${numberClassName}`}>
-                {item.label}
-              </span>
-              <span
-                className={`flex min-w-0 items-center gap-2 ${titleBaseClassName} ${titleClassName}`}
-              >
-                <span className="truncate">{item.title}</span>
-                <StatusBadge label="草稿" status={item.status} />
-              </span>
-            </>
-          ) : (
-            <>
-              <span className={`${numberBaseClassName} bg-gray-500`}>
-                {item.label}
-              </span>
-              <span className={`${titleBaseClassName} text-gray-500`}>
-                未完待续......
-              </span>
-            </>
+        const sourceIndex =
+          item.kind === 'post'
+            ? editableItems.findIndex((editableItem) => editableItem.id === item.id)
+            : -1
+
+        async function handleDrop(targetDepth: number) {
+          if (!onReorder || draggedId === null || item.kind !== 'post') {
+            return
+          }
+
+          const draggedIndex = editableItems.findIndex(
+            (editableItem) => editableItem.id === draggedId,
+          )
+          const targetIndex = editableItems.findIndex(
+            (editableItem) => editableItem.id === item.id,
           )
 
-        if (item.kind === 'post' && !item.isCurrent) {
-          return (
-            <Link
-              className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] py-1.5 pr-1.5 no-underline hover:bg-gray-100"
-              key={item.slug}
-              params={{
-                postSlug: item.slug,
-                seriesSlug,
-              }}
-              style={{ paddingLeft }}
-              to="/blogs/$seriesSlug/$postSlug"
-            >
-              {content}
-            </Link>
+          if (
+            draggedIndex === -1 ||
+            targetIndex === -1 ||
+            draggedIndex === targetIndex ||
+            !canMoveFlatChapter(editableItems, draggedIndex, targetIndex)
+          ) {
+            return
+          }
+
+          const nextItems = [...editableItems]
+          const [draggedItem] = nextItems.splice(draggedIndex, 1)
+
+          const adjustedTargetIndex =
+            draggedIndex < targetIndex ? targetIndex - 1 : targetIndex
+          const maxDepth = Math.max(
+            0,
+            (nextItems[adjustedTargetIndex]?.depth ?? 0) + 1,
           )
+          const depth = Math.min(Math.max(0, targetDepth), maxDepth)
+
+          nextItems.splice(adjustedTargetIndex + 1, 0, {
+            ...draggedItem,
+            depth,
+          })
+
+          try {
+            setReorderError(null)
+            await onReorder(buildReorderPayloadFromFlatItems(nextItems))
+          } catch (error) {
+            setReorderError(
+              error instanceof Error ? error.message : '排序保存失败，请稍后再试',
+            )
+          } finally {
+            setDraggedId(null)
+          }
         }
+
+        const managementControls =
+          item.kind === 'post' && isOwner ? (
+            <>
+              <div className="min-w-0 flex-1" />
+              <Link
+                aria-label={`编辑博客：${item.title}`}
+                className="flex size-6 shrink-0 items-center justify-center overflow-clip rounded-[4px] text-[#4B5563] no-underline hover:bg-[#E5E7EB]"
+                params={{ postSlug: item.slug, seriesSlug }}
+                to="/blogs/$seriesSlug/$postSlug/edit"
+              >
+                <Pencil aria-hidden="true" className="size-4" strokeWidth={2} />
+              </Link>
+              <Link
+                aria-label={`添加子博客：${item.title}`}
+                className="flex size-6 shrink-0 items-center justify-center overflow-clip rounded-[4px] text-[#4B5563] no-underline hover:bg-[#E5E7EB]"
+                search={{ parent: item.slug }}
+                params={{ seriesSlug }}
+                to="/blogs/$seriesSlug/new"
+              >
+                <BadgePlus
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={2}
+                />
+              </Link>
+              <button
+                aria-label={`拖动排序：${item.title}`}
+                draggable={Boolean(onReorder)}
+                onDragStart={(event) => {
+                  setDraggedId(item.id)
+                  event.dataTransfer.effectAllowed = 'move'
+                  event.dataTransfer.setData('text/plain', String(item.id))
+                }}
+                onDragEnd={() => setDraggedId(null)}
+                className="flex size-6 shrink-0 items-center justify-center overflow-clip rounded-[4px] border-0 bg-transparent p-0 text-[#4B5563] hover:bg-[#E5E7EB]"
+                type="button"
+              >
+                <GripVertical
+                  aria-hidden="true"
+                  className="size-4"
+                  strokeWidth={2}
+                />
+              </button>
+            </>
+          ) : null
+
+        const titleContent =
+          item.kind === 'post' ? (
+            <span
+              className={`flex min-w-0 items-center gap-2 ${titleBaseClassName} ${titleClassName}`}
+            >
+              <span className="truncate">{item.title}</span>
+              <StatusBadge label="草稿" status={item.status} />
+            </span>
+          ) : (
+            <span className={`${titleBaseClassName} text-gray-500`}>
+              未完待续......
+            </span>
+          )
 
         return (
           <div
-            className="flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] py-1.5 pr-1.5"
+            data-testid={item.kind === 'post' ? `chapter-row-${item.slug}` : undefined}
+            onDragOver={(event) => {
+              if (draggedId !== null && sourceIndex !== -1) {
+                event.preventDefault()
+                event.dataTransfer.dropEffect = 'move'
+              }
+            }}
+            onDrop={(event) => {
+              event.preventDefault()
+              const targetDepth = event.clientX > 24 ? item.depth + 1 : item.depth
+              void handleDrop(targetDepth)
+            }}
+            className={`flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] py-1.5 pr-1.5 ${item.kind === 'post' && !item.isCurrent ? 'hover:bg-[#F3F4F6]' : ''}`}
             key={item.kind === 'post' ? item.slug : 'pending'}
             style={{ paddingLeft }}
           >
-            {content}
+            {item.kind === 'post' && !item.isCurrent ? (
+              <Link
+                className="flex min-w-0 items-center gap-1.5 no-underline"
+                params={{
+                  postSlug: item.slug,
+                  seriesSlug,
+                }}
+                to="/blogs/$seriesSlug/$postSlug"
+              >
+                <span className={`${numberBaseClassName} ${numberClassName}`}>
+                  {item.label}
+                </span>
+                {titleContent}
+              </Link>
+            ) : (
+              <>
+                <span className={`${numberBaseClassName} ${numberClassName}`}>
+                  {item.label}
+                </span>
+                {titleContent}
+              </>
+            )}
+            {managementControls}
           </div>
         )
       })}
+      {isOwner ? (
+        <div className="flex w-full items-center overflow-clip px-1.5 pt-3">
+          <Link
+            className="inline-flex h-8 shrink-0 items-center justify-center rounded-[4px] bg-[#059669] px-6 text-[16px] leading-[normal] font-normal text-white no-underline hover:opacity-90"
+            params={{ seriesSlug }}
+            to="/blogs/$seriesSlug/new"
+          >
+            新建博客
+          </Link>
+        </div>
+      ) : null}
+      {reorderError ? (
+        <p role="alert" className="m-0 px-1.5 text-[14px] leading-5 text-[#B42318]">
+          {reorderError}
+        </p>
+      ) : null}
     </div>
   )
 }
@@ -280,7 +528,16 @@ export function BlogPostSiblingNavigation({
   )
 }
 
-export function BlogPostPageView({ page }: { page: VisibleBlogPostPageData }) {
+export function BlogPostPageView({
+  onReorder,
+  page,
+  viewer = null,
+}: {
+  onReorder?: (posts: ReorderBlogPostPayloadItem[]) => Promise<void>
+  page: VisibleBlogPostPageData
+  viewer?: Viewer | null
+}) {
+  const isOwner = viewer?.role === 'owner'
   const chapterItems = getChapterItems(
     page.chapters,
     page.post_slug,
@@ -308,6 +565,9 @@ export function BlogPostPageView({ page }: { page: VisibleBlogPostPageData }) {
         <section className="p-6">
           <BlogPostChapterList
             chapterItems={chapterItems}
+            chapters={page.chapters}
+            isOwner={isOwner}
+            onReorder={onReorder}
             seriesSlug={page.series_slug}
           />
         </section>

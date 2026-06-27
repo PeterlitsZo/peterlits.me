@@ -18,6 +18,7 @@ import { Route as PoemsNewRouteImport } from './routes/poems/new'
 import { Route as BlogsSeriesSlugIndexRouteImport } from './routes/blogs/$seriesSlug/index'
 import { Route as BlogsSeriesSlugNewRouteImport } from './routes/blogs/$seriesSlug/new'
 import { Route as BlogsSeriesSlugPostSlugRouteImport } from './routes/blogs/$seriesSlug/$postSlug'
+import { Route as BlogsSeriesSlugPostSlugEditRouteImport } from './routes/blogs/$seriesSlug/$postSlug/edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -64,6 +65,12 @@ const BlogsSeriesSlugPostSlugRoute = BlogsSeriesSlugPostSlugRouteImport.update({
   path: '/blogs/$seriesSlug/$postSlug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogsSeriesSlugPostSlugEditRoute =
+  BlogsSeriesSlugPostSlugEditRouteImport.update({
+    id: '/edit',
+    path: '/edit',
+    getParentRoute: () => BlogsSeriesSlugPostSlugRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -72,9 +79,10 @@ export interface FileRoutesByFullPath {
   '/blogs/': typeof BlogsIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/poems/': typeof PoemsIndexRoute
-  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
+  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRouteWithChildren
   '/blogs/$seriesSlug/new': typeof BlogsSeriesSlugNewRoute
   '/blogs/$seriesSlug/': typeof BlogsSeriesSlugIndexRoute
+  '/blogs/$seriesSlug/$postSlug/edit': typeof BlogsSeriesSlugPostSlugEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -83,9 +91,10 @@ export interface FileRoutesByTo {
   '/blogs': typeof BlogsIndexRoute
   '/notes': typeof NotesIndexRoute
   '/poems': typeof PoemsIndexRoute
-  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
+  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRouteWithChildren
   '/blogs/$seriesSlug/new': typeof BlogsSeriesSlugNewRoute
   '/blogs/$seriesSlug': typeof BlogsSeriesSlugIndexRoute
+  '/blogs/$seriesSlug/$postSlug/edit': typeof BlogsSeriesSlugPostSlugEditRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,9 +104,10 @@ export interface FileRoutesById {
   '/blogs/': typeof BlogsIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/poems/': typeof PoemsIndexRoute
-  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
+  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRouteWithChildren
   '/blogs/$seriesSlug/new': typeof BlogsSeriesSlugNewRoute
   '/blogs/$seriesSlug/': typeof BlogsSeriesSlugIndexRoute
+  '/blogs/$seriesSlug/$postSlug/edit': typeof BlogsSeriesSlugPostSlugEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/blogs/$seriesSlug/$postSlug'
     | '/blogs/$seriesSlug/new'
     | '/blogs/$seriesSlug/'
+    | '/blogs/$seriesSlug/$postSlug/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -122,6 +133,7 @@ export interface FileRouteTypes {
     | '/blogs/$seriesSlug/$postSlug'
     | '/blogs/$seriesSlug/new'
     | '/blogs/$seriesSlug'
+    | '/blogs/$seriesSlug/$postSlug/edit'
   id:
     | '__root__'
     | '/'
@@ -133,6 +145,7 @@ export interface FileRouteTypes {
     | '/blogs/$seriesSlug/$postSlug'
     | '/blogs/$seriesSlug/new'
     | '/blogs/$seriesSlug/'
+    | '/blogs/$seriesSlug/$postSlug/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -142,7 +155,7 @@ export interface RootRouteChildren {
   BlogsIndexRoute: typeof BlogsIndexRoute
   NotesIndexRoute: typeof NotesIndexRoute
   PoemsIndexRoute: typeof PoemsIndexRoute
-  BlogsSeriesSlugPostSlugRoute: typeof BlogsSeriesSlugPostSlugRoute
+  BlogsSeriesSlugPostSlugRoute: typeof BlogsSeriesSlugPostSlugRouteWithChildren
   BlogsSeriesSlugNewRoute: typeof BlogsSeriesSlugNewRoute
   BlogsSeriesSlugIndexRoute: typeof BlogsSeriesSlugIndexRoute
 }
@@ -212,8 +225,29 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogsSeriesSlugPostSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blogs/$seriesSlug/$postSlug/edit': {
+      id: '/blogs/$seriesSlug/$postSlug/edit'
+      path: '/edit'
+      fullPath: '/blogs/$seriesSlug/$postSlug/edit'
+      preLoaderRoute: typeof BlogsSeriesSlugPostSlugEditRouteImport
+      parentRoute: typeof BlogsSeriesSlugPostSlugRoute
+    }
   }
 }
+
+interface BlogsSeriesSlugPostSlugRouteChildren {
+  BlogsSeriesSlugPostSlugEditRoute: typeof BlogsSeriesSlugPostSlugEditRoute
+}
+
+const BlogsSeriesSlugPostSlugRouteChildren: BlogsSeriesSlugPostSlugRouteChildren =
+  {
+    BlogsSeriesSlugPostSlugEditRoute: BlogsSeriesSlugPostSlugEditRoute,
+  }
+
+const BlogsSeriesSlugPostSlugRouteWithChildren =
+  BlogsSeriesSlugPostSlugRoute._addFileChildren(
+    BlogsSeriesSlugPostSlugRouteChildren,
+  )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -222,7 +256,7 @@ const rootRouteChildren: RootRouteChildren = {
   BlogsIndexRoute: BlogsIndexRoute,
   NotesIndexRoute: NotesIndexRoute,
   PoemsIndexRoute: PoemsIndexRoute,
-  BlogsSeriesSlugPostSlugRoute: BlogsSeriesSlugPostSlugRoute,
+  BlogsSeriesSlugPostSlugRoute: BlogsSeriesSlugPostSlugRouteWithChildren,
   BlogsSeriesSlugNewRoute: BlogsSeriesSlugNewRoute,
   BlogsSeriesSlugIndexRoute: BlogsSeriesSlugIndexRoute,
 }

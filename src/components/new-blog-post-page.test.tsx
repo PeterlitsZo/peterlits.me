@@ -31,11 +31,16 @@ afterEach(() => {
 
 function renderPage(
   onSubmit: (input: CreateBlogPostInput) => Promise<{ slug: string }>,
+  options: { parentPostSlug?: string } = {},
 ) {
   const rootRoute = createRootRoute({
     component: () => (
       <SiteShell viewer={ownerViewer}>
-        <NewBlogPostPageView seriesSlug="tcp" onSubmit={onSubmit} />
+        <NewBlogPostPageView
+          parentPostSlug={options.parentPostSlug}
+          seriesSlug="tcp"
+          onSubmit={onSubmit}
+        />
       </SiteShell>
     ),
   })
@@ -151,5 +156,37 @@ describe('NewBlogPostPageView', () => {
 
     await screen.findByRole('button', { name: '新建' })
     expect(calls).toEqual([{ title: '起步', slug: 'intro', content: '内容' }])
+  })
+
+  it('includes the parent post slug when creating a child blog', async () => {
+    const calls: CreateBlogPostInput[] = []
+    renderPage(
+      (input) => {
+        calls.push(input)
+        return Promise.resolve({ slug: 'data-transfer' })
+      },
+      { parentPostSlug: 'runtime' },
+    )
+
+    fireEvent.change(await screen.findByLabelText('博客标题'), {
+      target: { value: '数据传输' },
+    })
+    fireEvent.change(await screen.findByLabelText('博客链接标识'), {
+      target: { value: 'data-transfer' },
+    })
+    fireEvent.change(await screen.findByLabelText('博客内容'), {
+      target: { value: '内容' },
+    })
+    fireEvent.click(await screen.findByRole('button', { name: '新建' }))
+
+    await screen.findByRole('button', { name: '新建' })
+    expect(calls).toEqual([
+      {
+        title: '数据传输',
+        slug: 'data-transfer',
+        content: '内容',
+        parentPostSlug: 'runtime',
+      },
+    ])
   })
 })
