@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router'
+import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry'
 
 import type { VisiblePoemListItem } from '../lib/poem-models'
 import type { Viewer } from '../lib/auth'
@@ -12,9 +13,6 @@ export function PoemListPageView({
   viewer: Viewer | null
 }) {
   const isOwner = viewer?.role === 'owner'
-
-  const col1 = poems.filter((_, index) => index % 2 === 0)
-  const col2 = poems.filter((_, index) => index % 2 === 1)
 
   return (
     <div className="min-h-screen bg-[#F9FAFB]" data-testid="poem-list-page">
@@ -44,17 +42,14 @@ export function PoemListPageView({
           </div>
         ) : null}
 
-        <section className="flex gap-4 px-6 py-8">
-          <div className="flex flex-1 flex-col gap-4">
-            {col1.map((poem) => (
-              <PoemCard key={poem.id} poem={poem} />
-            ))}
-          </div>
-          <div className="flex flex-1 flex-col gap-4">
-            {col2.map((poem) => (
-              <PoemCard key={poem.id} poem={poem} />
-            ))}
-          </div>
+        <section className="px-6 py-8" data-testid="poem-masonry-list">
+          <ResponsiveMasonry columnsCountBreakPoints={{ 0: 1, 768: 2 }}>
+            <Masonry gutter="16px">
+              {poems.map((poem) => (
+                <PoemCard key={poem.id} poem={poem} />
+              ))}
+            </Masonry>
+          </ResponsiveMasonry>
         </section>
 
         <div className="min-h-0 flex-1" />
@@ -65,7 +60,7 @@ export function PoemListPageView({
 
 function PoemCard({ poem }: { poem: VisiblePoemListItem }) {
   return (
-    <article className="flex flex-col gap-3 rounded-[12px] bg-[#F9FAFB] p-5">
+    <article className="flex w-full flex-col gap-3 rounded-[12px] bg-[#F9FAFB] p-5">
       <h2 className="m-0 text-[18px] font-medium text-[#030712]">
         {poem.title}
       </h2>

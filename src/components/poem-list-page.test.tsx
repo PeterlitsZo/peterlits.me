@@ -96,6 +96,22 @@ describe('PoemListPageView', () => {
     expect(screen.getByText('床前明月光')).toBeTruthy()
   })
 
+  it('renders poems in a responsive masonry list', async () => {
+    renderPoemsPage()
+
+    const masonryList = await screen.findByTestId('poem-masonry-list')
+    expect(masonryList.contains(screen.getByText('秋风'))).toBe(true)
+    expect(masonryList.contains(screen.getByText('春日'))).toBe(true)
+    expect(masonryList.contains(screen.getByText('夜思'))).toBe(true)
+  })
+
+  it('stretches poem cards to fill their masonry column', async () => {
+    renderPoemsPage()
+
+    const title = await screen.findByText('秋风')
+    expect(title.closest('article')?.className).toContain('w-full')
+  })
+
   it('does not show the 新建诗 button for anonymous viewers', async () => {
     renderPoemsPage({ viewer: null })
 

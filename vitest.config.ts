@@ -11,6 +11,10 @@ export default defineConfig({
         dirname,
         'src/test-support/cloudflare-workers.ts',
       ),
+      'react-responsive-masonry': path.resolve(
+        dirname,
+        'node_modules/react-responsive-masonry/es/index.js',
+      ),
     },
   },
   test: {
