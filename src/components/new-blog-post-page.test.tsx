@@ -190,3 +190,134 @@ describe('NewBlogPostPageView', () => {
     ])
   })
 })
+
+describe('NewBlogPostPageView (update blog)', () => {
+  function renderUpdatePage(
+    onSubmit: (input: CreateBlogPostInput) => Promise<{ slug: string }>,
+    options: {
+      initialTitle?: string
+      initialSlug?: string
+      initialContent?: string
+    } = {},
+  ) {
+    const rootRoute = createRootRoute({
+      component: () => (
+        <SiteShell viewer={ownerViewer}>
+          <NewBlogPostPageView
+            initialTitle={options.initialTitle ?? ''}
+            initialSlug={options.initialSlug ?? ''}
+            initialContent={options.initialContent ?? ''}
+            seriesSlug="tcp"
+            submitLabel="更新"
+            titleText="更新博客"
+            onSubmit={onSubmit}
+          />
+        </SiteShell>
+      ),
+    })
+    const indexRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: '/',
+      component: () => null,
+    })
+    const postRoute = createRoute({
+      getParentRoute: () => rootRoute,
+      path: '/blogs/$seriesSlug/$postSlug',
+      component: () => null,
+    })
+    const routeTree = rootRoute.addChildren([indexRoute, postRoute])
+    render(
+      <RouterProvider
+        router={createRouter({
+          routeTree,
+          history: createMemoryHistory({ initialEntries: ['/'] }),
+        })}
+      />,
+    )
+  }
+
+  it('renders the update title and subtitle', async () => {
+    renderUpdatePage(() => Promise.resolve({ slug: 'intro' }), {
+      initialTitle: '起步',
+      initialSlug: 'intro',
+      initialContent: '内容',
+    })
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: '更新博客' }),
+    ).toBeTruthy()
+    expect(screen.getByText('吸收、沉淀、输出。')).toBeTruthy()
+  })
+
+  it('prefills the inputs with the initial values', async () => {
+    renderUpdatePage(() => Promise.resolve({ slug: 'intro' }), {
+      initialTitle: '起步',
+      initialSlug: 'intro',
+      initialContent: '正文内容',
+    })
+
+    expect((await screen.findByLabelText('博客标题')).value).toBe('起步')
+    expect(screen.getByLabelText('博客链接标识').value).toBe('intro')
+    expect(screen.getByLabelText('博客内容').value).toBe('正文内容')
+  })
+
+  it('renders the update submit button label', async () => {
+    renderUpdatePage(() => Promise.resolve({ slug: 'intro' }), {
+      initialTitle: '起步',
+      initialSlug: 'intro',
+      initialContent: '内容',
+    })
+
+    expect(await screen.findByRole('button', { name: '更新' })).toBeTruthy()
+  })
+
+  it('calls onSubmit with trimmed title, slug, and content without parentPostSlug', async () => {
+    const calls: CreateBlogPostInput[] = []
+    renderUpdatePage(
+      (input) => {
+        calls.push(input)
+        return Promise.resolve({ slug: 'handshake' })
+      },
+      {
+        initialTitle: ' 起步 ',
+        initialSlug: 'intro',
+        initialContent: ' 内容 ',
+      },
+    )
+
+    fireEvent.change(await screen.findByLabelText('博客标题'), {
+      target: { value: '  握手  ' },
+    })
+    fireEvent.change(await screen.findByLabelText('博客链接标识'), {
+      target: { value: ' handshake ' },
+    })
+    fireEvent.change(await screen.findByLabelText('博客内容'), {
+      target: { value: '  正文  ' },
+    })
+    fireEvent.click(await screen.findByRole('button', { name: '更新' }))
+
+    await screen.findByRole('button', { name: '更新' })
+    expect(calls).toEqual([
+      { title: '握手', slug: 'handshake', content: '正文' },
+    ])
+  })
+
+  it('shows an error message when update fails', async () => {
+    renderUpdatePage(() =>
+      Promise.reject(new Error('该博客标识已被占用，请换一个')),
+    )
+
+    fireEvent.change(await screen.findByLabelText('博客标题'), {
+      target: { value: '起步' },
+    })
+    fireEvent.change(await screen.findByLabelText('博客链接标识'), {
+      target: { value: 'intro' },
+    })
+    fireEvent.change(await screen.findByLabelText('博客内容'), {
+      target: { value: '内容' },
+    })
+    fireEvent.click(await screen.findByRole('button', { name: '更新' }))
+
+    expect(await screen.findByText('该博客标识已被占用，请换一个')).toBeTruthy()
+  })
+})

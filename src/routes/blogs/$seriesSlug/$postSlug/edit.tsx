@@ -33,8 +33,8 @@ function EditBlogPostRoute() {
       initialSlug={post.slug}
       initialTitle={post.title}
       seriesSlug={seriesSlug}
-      submitLabel="保存"
-      titleText="编辑博客"
+      submitLabel="更新"
+      titleText="更新博客"
       onSubmit={(input) =>
         updatePost({ data: { seriesSlug, postSlug, ...input } })
       }

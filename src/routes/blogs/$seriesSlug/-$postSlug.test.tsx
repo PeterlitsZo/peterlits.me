@@ -737,7 +737,7 @@ describe('BlogPostChapterList', () => {
 
     expect(
       (
-        await screen.findByRole('link', { name: '编辑博客：起步' })
+        await screen.findByRole('link', { name: '更新博客：起步' })
       ).getAttribute('href'),
     ).toBe('/blogs/tcp/intro/edit')
     expect(
@@ -775,7 +775,7 @@ describe('BlogPostChapterList', () => {
 
     await screen.findByText('起步')
 
-    expect(screen.queryByRole('link', { name: '编辑博客：起步' })).toBeNull()
+    expect(screen.queryByRole('link', { name: '更新博客：起步' })).toBeNull()
     expect(screen.queryByRole('link', { name: '添加子博客：起步' })).toBeNull()
     expect(screen.queryByRole('button', { name: '拖动排序：起步' })).toBeNull()
     expect(screen.queryByRole('link', { name: '新建博客' })).toBeNull()

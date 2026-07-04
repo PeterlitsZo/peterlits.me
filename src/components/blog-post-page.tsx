@@ -356,7 +356,7 @@ export function BlogPostChapterList({
             <>
               <div className="min-w-0 flex-1" />
               <Link
-                aria-label={`编辑博客：${item.title}`}
+                aria-label={`更新博客：${item.title}`}
                 className="flex size-6 shrink-0 items-center justify-center overflow-clip rounded-[4px] text-[#4B5563] no-underline hover:bg-[#E5E7EB]"
                 params={{ postSlug: item.slug, seriesSlug }}
                 to="/blogs/$seriesSlug/$postSlug/edit"
