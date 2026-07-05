@@ -40,6 +40,10 @@ body {
   margin-bottom: 0.75rem;
 }
 
+.markdown-body dl dt {
+  font-style: normal;
+}
+
 .markdown-body dl dd {
   padding-left: 2rem;
 }
