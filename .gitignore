@@ -16,6 +16,6 @@ todos.json
 !.dev.vars.example
 !.env.example
 
-plan.md
+/plan*.md
 
 .pnpm-store/

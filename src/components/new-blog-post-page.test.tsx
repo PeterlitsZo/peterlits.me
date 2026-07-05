@@ -5,13 +5,24 @@ import {
   createRoute,
   createRouter,
 } from '@tanstack/react-router'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { NewBlogPostPageView } from './new-blog-post-page'
+import {
+  NewBlogPostPageView,
+  buildImageMarkdown,
+  insertAtOffset,
+} from './new-blog-post-page'
 import { SiteShell } from './site-shell'
 
 import type { CreateBlogPostInput } from '../lib/post-rpc'
+import type { UploadMediaResult } from '../lib/media-rpc'
 
 const ownerViewer = {
   id: 1,
@@ -31,12 +42,16 @@ afterEach(() => {
 
 function renderPage(
   onSubmit: (input: CreateBlogPostInput) => Promise<{ slug: string }>,
-  options: { parentPostSlug?: string } = {},
+  options: {
+    parentPostSlug?: string
+    uploadMediaFn?: (args: { data: FormData }) => Promise<UploadMediaResult>
+  } = {},
 ) {
   const rootRoute = createRootRoute({
     component: () => (
       <SiteShell viewer={ownerViewer}>
         <NewBlogPostPageView
+          uploadMediaFn={options.uploadMediaFn}
           parentPostSlug={options.parentPostSlug}
           seriesSlug="tcp"
           onSubmit={onSubmit}
@@ -319,5 +334,114 @@ describe('NewBlogPostPageView (update blog)', () => {
     fireEvent.click(await screen.findByRole('button', { name: '更新' }))
 
     expect(await screen.findByText('该博客标识已被占用，请换一个')).toBeTruthy()
+  })
+})
+
+describe('NewBlogPostPageView image drop', () => {
+  function pngFile(name = 'photo.png', content = 'png-bytes') {
+    return new File([content], name, { type: 'image/png' })
+  }
+
+  function dropImage(file: File) {
+    const content = screen.getByLabelText('博客内容')
+    fireEvent.drop(content, {
+      dataTransfer: { files: [file] } as unknown as DataTransfer,
+    })
+  }
+
+  it('uploads a dropped image and inserts its markdown at the drop point', async () => {
+    let receivedFile: File | null = null
+    renderPage(() => Promise.resolve({ slug: 'intro' }), {
+      uploadMediaFn: async ({ data }) => {
+        receivedFile = data.get('file') as File
+        return {
+          url: 'https://static.peterlits.me/2026/07/abc.png',
+          alt: 'screenshot',
+        }
+      },
+    })
+
+    fireEvent.change(await screen.findByLabelText('博客内容'), {
+      target: { value: '开头' },
+    })
+    dropImage(pngFile('screenshot.png'))
+
+    const content = screen.getByLabelText('博客内容')
+    await waitFor(() => {
+      expect(content.value).toContain(
+        '![screenshot](https://static.peterlits.me/2026/07/abc.png)',
+      )
+    })
+    expect(receivedFile).toBeInstanceOf(File)
+  })
+
+  it('removes the placeholder and shows an error when upload fails', async () => {
+    renderPage(() => Promise.resolve({ slug: 'intro' }), {
+      uploadMediaFn: async () => {
+        throw new Error('图片上传失败，请稍后再试')
+      },
+    })
+
+    fireEvent.change(await screen.findByLabelText('博客内容'), {
+      target: { value: '正文' },
+    })
+    dropImage(pngFile('broken.png'))
+
+    const content = screen.getByLabelText('博客内容')
+    await waitFor(() => {
+      expect(content.value).not.toContain('uploading')
+    })
+    expect(content.value).not.toContain('broken')
+    expect(await screen.findByText('图片上传失败，请稍后再试')).toBeTruthy()
+  })
+
+  it('does not upload non-image drops', async () => {
+    let called = false
+    renderPage(() => Promise.resolve({ slug: 'intro' }), {
+      uploadMediaFn: async () => {
+        called = true
+        return { url: '', alt: '' }
+      },
+    })
+
+    fireEvent.change(await screen.findByLabelText('博客内容'), {
+      target: { value: '原文' },
+    })
+    dropImage(new File(['x'], 'doc.pdf', { type: 'application/pdf' }))
+
+    const content = screen.getByLabelText('博客内容')
+    // Non-image drops are ignored synchronously: content must stay unchanged.
+    expect(called).toBe(false)
+    await waitFor(() => {
+      expect(content.value).toBe('原文')
+    })
+  })
+})
+
+describe('buildImageMarkdown', () => {
+  it('wraps alt and url in markdown image syntax', () => {
+    expect(buildImageMarkdown('cat', 'https://x/y.png')).toBe(
+      '![cat](https://x/y.png)',
+    )
+  })
+
+  it('escapes brackets in the alt text so it cannot break the syntax', () => {
+    expect(buildImageMarkdown('a [b] c', 'https://x/y.png')).toBe(
+      '![a \\[b\\] c](https://x/y.png)',
+    )
+  })
+})
+
+describe('insertAtOffset', () => {
+  it('inserts a snippet at the given offset and returns the caret end', () => {
+    expect(insertAtOffset('abc', 1, 'X')).toEqual({ text: 'aXbc', caret: 2 })
+  })
+
+  it('clamps an offset beyond the text length', () => {
+    expect(insertAtOffset('abc', 99, 'X')).toEqual({ text: 'abcX', caret: 4 })
+  })
+
+  it('clamps a negative offset to the start', () => {
+    expect(insertAtOffset('abc', -1, 'X')).toEqual({ text: 'Xabc', caret: 1 })
   })
 })

@@ -4,6 +4,7 @@
 interface __BaseEnv_Env {
   AUTH_JWT_SECRET: string
   peterlits_me: D1Database
+  MEDIA: R2Bucket
 }
 declare namespace Cloudflare {
   interface Env extends __BaseEnv_Env {}
