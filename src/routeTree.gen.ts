@@ -18,7 +18,7 @@ import { Route as PoemsNewRouteImport } from './routes/poems/new'
 import { Route as BlogsSeriesSlugIndexRouteImport } from './routes/blogs/$seriesSlug/index'
 import { Route as BlogsSeriesSlugNewRouteImport } from './routes/blogs/$seriesSlug/new'
 import { Route as BlogsSeriesSlugPostSlugRouteImport } from './routes/blogs/$seriesSlug/$postSlug'
-import { Route as BlogsSeriesSlugPostSlugEditRouteImport } from './routes/blogs/$seriesSlug/$postSlug/edit'
+import { Route as BlogsSeriesSlugPostSlugEditRouteImport } from './routes/blogs/$seriesSlug/$postSlug_.edit'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -67,9 +67,9 @@ const BlogsSeriesSlugPostSlugRoute = BlogsSeriesSlugPostSlugRouteImport.update({
 } as any)
 const BlogsSeriesSlugPostSlugEditRoute =
   BlogsSeriesSlugPostSlugEditRouteImport.update({
-    id: '/edit',
-    path: '/edit',
-    getParentRoute: () => BlogsSeriesSlugPostSlugRoute,
+    id: '/blogs/$seriesSlug/$postSlug_/edit',
+    path: '/blogs/$seriesSlug/$postSlug/edit',
+    getParentRoute: () => rootRouteImport,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -79,7 +79,7 @@ export interface FileRoutesByFullPath {
   '/blogs/': typeof BlogsIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/poems/': typeof PoemsIndexRoute
-  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRouteWithChildren
+  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
   '/blogs/$seriesSlug/new': typeof BlogsSeriesSlugNewRoute
   '/blogs/$seriesSlug/': typeof BlogsSeriesSlugIndexRoute
   '/blogs/$seriesSlug/$postSlug/edit': typeof BlogsSeriesSlugPostSlugEditRoute
@@ -91,7 +91,7 @@ export interface FileRoutesByTo {
   '/blogs': typeof BlogsIndexRoute
   '/notes': typeof NotesIndexRoute
   '/poems': typeof PoemsIndexRoute
-  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRouteWithChildren
+  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
   '/blogs/$seriesSlug/new': typeof BlogsSeriesSlugNewRoute
   '/blogs/$seriesSlug': typeof BlogsSeriesSlugIndexRoute
   '/blogs/$seriesSlug/$postSlug/edit': typeof BlogsSeriesSlugPostSlugEditRoute
@@ -104,10 +104,10 @@ export interface FileRoutesById {
   '/blogs/': typeof BlogsIndexRoute
   '/notes/': typeof NotesIndexRoute
   '/poems/': typeof PoemsIndexRoute
-  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRouteWithChildren
+  '/blogs/$seriesSlug/$postSlug': typeof BlogsSeriesSlugPostSlugRoute
   '/blogs/$seriesSlug/new': typeof BlogsSeriesSlugNewRoute
   '/blogs/$seriesSlug/': typeof BlogsSeriesSlugIndexRoute
-  '/blogs/$seriesSlug/$postSlug/edit': typeof BlogsSeriesSlugPostSlugEditRoute
+  '/blogs/$seriesSlug/$postSlug_/edit': typeof BlogsSeriesSlugPostSlugEditRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -145,7 +145,7 @@ export interface FileRouteTypes {
     | '/blogs/$seriesSlug/$postSlug'
     | '/blogs/$seriesSlug/new'
     | '/blogs/$seriesSlug/'
-    | '/blogs/$seriesSlug/$postSlug/edit'
+    | '/blogs/$seriesSlug/$postSlug_/edit'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -155,9 +155,10 @@ export interface RootRouteChildren {
   BlogsIndexRoute: typeof BlogsIndexRoute
   NotesIndexRoute: typeof NotesIndexRoute
   PoemsIndexRoute: typeof PoemsIndexRoute
-  BlogsSeriesSlugPostSlugRoute: typeof BlogsSeriesSlugPostSlugRouteWithChildren
+  BlogsSeriesSlugPostSlugRoute: typeof BlogsSeriesSlugPostSlugRoute
   BlogsSeriesSlugNewRoute: typeof BlogsSeriesSlugNewRoute
   BlogsSeriesSlugIndexRoute: typeof BlogsSeriesSlugIndexRoute
+  BlogsSeriesSlugPostSlugEditRoute: typeof BlogsSeriesSlugPostSlugEditRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -225,29 +226,15 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogsSeriesSlugPostSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blogs/$seriesSlug/$postSlug/edit': {
-      id: '/blogs/$seriesSlug/$postSlug/edit'
-      path: '/edit'
+    '/blogs/$seriesSlug/$postSlug_/edit': {
+      id: '/blogs/$seriesSlug/$postSlug_/edit'
+      path: '/blogs/$seriesSlug/$postSlug/edit'
       fullPath: '/blogs/$seriesSlug/$postSlug/edit'
       preLoaderRoute: typeof BlogsSeriesSlugPostSlugEditRouteImport
-      parentRoute: typeof BlogsSeriesSlugPostSlugRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
-
-interface BlogsSeriesSlugPostSlugRouteChildren {
-  BlogsSeriesSlugPostSlugEditRoute: typeof BlogsSeriesSlugPostSlugEditRoute
-}
-
-const BlogsSeriesSlugPostSlugRouteChildren: BlogsSeriesSlugPostSlugRouteChildren =
-  {
-    BlogsSeriesSlugPostSlugEditRoute: BlogsSeriesSlugPostSlugEditRoute,
-  }
-
-const BlogsSeriesSlugPostSlugRouteWithChildren =
-  BlogsSeriesSlugPostSlugRoute._addFileChildren(
-    BlogsSeriesSlugPostSlugRouteChildren,
-  )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -256,9 +243,10 @@ const rootRouteChildren: RootRouteChildren = {
   BlogsIndexRoute: BlogsIndexRoute,
   NotesIndexRoute: NotesIndexRoute,
   PoemsIndexRoute: PoemsIndexRoute,
-  BlogsSeriesSlugPostSlugRoute: BlogsSeriesSlugPostSlugRouteWithChildren,
+  BlogsSeriesSlugPostSlugRoute: BlogsSeriesSlugPostSlugRoute,
   BlogsSeriesSlugNewRoute: BlogsSeriesSlugNewRoute,
   BlogsSeriesSlugIndexRoute: BlogsSeriesSlugIndexRoute,
+  BlogsSeriesSlugPostSlugEditRoute: BlogsSeriesSlugPostSlugEditRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

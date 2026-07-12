@@ -1,11 +1,11 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 
-import { NewBlogPostPageView } from '../../../../components/new-blog-post-page'
-import { getViewer } from '../../../../lib/auth-rpc'
-import { getEditableBlogPost, updateBlogPost } from '../../../../lib/post-rpc'
+import { NewBlogPostPageView } from '../../../components/new-blog-post-page'
+import { getViewer } from '../../../lib/auth-rpc'
+import { getEditableBlogPost, updateBlogPost } from '../../../lib/post-rpc'
 
-export const Route = createFileRoute('/blogs/$seriesSlug/$postSlug/edit')({
+export const Route = createFileRoute('/blogs/$seriesSlug/$postSlug_/edit')({
   beforeLoad: async () => {
     const viewer = await getViewer()
     if (!viewer || viewer.role !== 'owner') {
