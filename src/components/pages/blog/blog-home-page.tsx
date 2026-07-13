@@ -3,14 +3,7 @@ import { Link } from '@tanstack/react-router'
 import type { VisibleBlogSeriesListItem } from '../../../lib/blog-models'
 import { PageFrame } from '../../layout/page-frame'
 import { PageHeader } from '../../layout/page-header'
-
-function DraftBadge() {
-  return (
-    <span className="inline-flex items-center rounded-full bg-[#F2F4F7] px-2 py-1 text-[12px] leading-none font-medium text-[#475467]">
-      草稿
-    </span>
-  )
-}
+import { DraftBadge } from '../../ui/draft-badge'
 
 export function BlogHomePageView({
   blogSeries,
@@ -33,7 +26,7 @@ export function BlogHomePageView({
               <span className="block text-[24px] leading-[1.35] font-normal text-black">
                 {series.title}
               </span>
-              {series.status === 'draft' ? <DraftBadge /> : null}
+              {series.status === 'draft' ? <DraftBadge>草稿</DraftBadge> : null}
             </span>
           )
 
