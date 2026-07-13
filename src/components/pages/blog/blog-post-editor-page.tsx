@@ -5,7 +5,8 @@ import { useServerFn } from '@tanstack/react-start'
 import type { CreateBlogPostInput } from '../../../lib/post-rpc'
 import { uploadMedia } from '../../../lib/media-rpc'
 import type { UploadMediaResult } from '../../../lib/media-rpc'
-import { AuthTopBar } from '../../app/auth-top-bar'
+import { PageFrame } from '../../layout/page-frame'
+import { PageHeader } from '../../layout/page-header'
 
 type SubmitState =
   | { kind: 'idle' }
@@ -259,27 +260,14 @@ export function NewBlogPostPageView({
   }
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]" data-testid="new-blog-post-page">
-      <main
-        aria-label="新建博客"
-        className="mx-auto flex min-h-screen w-full max-w-[800px] flex-col overflow-clip border-x border-[#F3F4F6] bg-white"
+    <PageFrame ariaLabel="新建博客" testId="new-blog-post-page">
+      <PageHeader title={titleText} subtitle="吸收、沉淀、输出。" />
+
+      <form
+        aria-labelledby="new-blog-post-title"
+        className="flex flex-col gap-3 p-6"
+        onSubmit={handleSubmit}
       >
-        <AuthTopBar />
-
-        <header className="flex h-[300px] shrink-0 flex-col justify-end overflow-clip p-6">
-          <h1 className="text-[48px] leading-none font-normal text-[#030712]">
-            {titleText}
-          </h1>
-          <p className="mt-2 text-[24px] leading-none font-normal text-[#4A5565]">
-            吸收、沉淀、输出。
-          </p>
-        </header>
-
-        <form
-          aria-labelledby="new-blog-post-title"
-          className="flex flex-col gap-3 p-6"
-          onSubmit={handleSubmit}
-        >
           <h2 id="new-blog-post-title" className="sr-only">
             新建博客表单
           </h2>
@@ -357,10 +345,7 @@ export function NewBlogPostPageView({
               {submitLabel}
             </button>
           </div>
-        </form>
-
-        <div className="min-h-0 flex-1" />
-      </main>
-    </div>
+      </form>
+    </PageFrame>
   )
 }

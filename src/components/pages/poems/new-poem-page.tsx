@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 
 import type { CreatePoemInput } from '../../../lib/poem-rpc'
-import { AuthTopBar } from '../../app/auth-top-bar'
+import { PageFrame } from '../../layout/page-frame'
+import { PageHeader } from '../../layout/page-header'
 
 type SubmitState =
   | { kind: 'idle' }
@@ -42,27 +43,14 @@ export function NewPoemPageView({
   const isPending = state.kind === 'pending'
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]" data-testid="new-poem-page">
-      <main
-        aria-label="新建诗"
-        className="mx-auto flex min-h-screen w-full max-w-[800px] flex-col overflow-clip border-x border-[#F3F4F6] bg-white"
+    <PageFrame ariaLabel="新建诗" testId="new-poem-page">
+      <PageHeader title="新建诗" subtitle="笔墨之间，且听风吟。" />
+
+      <form
+        aria-labelledby="new-poem-title"
+        className="flex flex-col gap-3 p-6"
+        onSubmit={handleSubmit}
       >
-        <AuthTopBar />
-
-        <header className="flex h-[300px] shrink-0 flex-col justify-end overflow-clip p-6">
-          <h1 className="text-[48px] leading-none font-normal text-[#030712]">
-            新建诗
-          </h1>
-          <p className="mt-2 text-[24px] leading-none font-normal text-[#4A5565]">
-            笔墨之间，且听风吟。
-          </p>
-        </header>
-
-        <form
-          aria-labelledby="new-poem-title"
-          className="flex flex-col gap-3 p-6"
-          onSubmit={handleSubmit}
-        >
           <h2 id="new-poem-title" className="sr-only">
             新建诗表单
           </h2>
@@ -112,10 +100,7 @@ export function NewPoemPageView({
               新建
             </button>
           </div>
-        </form>
-
-        <div className="min-h-0 flex-1" />
-      </main>
-    </div>
+      </form>
+    </PageFrame>
   )
 }

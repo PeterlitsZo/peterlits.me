@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 
 import type { CreateBlogSeriesInput } from '../../../lib/series-rpc'
-import { AuthTopBar } from '../../app/auth-top-bar'
+import { PageFrame } from '../../layout/page-frame'
+import { PageHeader } from '../../layout/page-header'
 
 type SubmitState =
   | { kind: 'idle' }
@@ -46,27 +47,14 @@ export function NewSeriesPageView({
   const isPending = state.kind === 'pending'
 
   return (
-    <div className="min-h-screen bg-[#F9FAFB]" data-testid="new-series-page">
-      <main
-        aria-label="新建系列"
-        className="mx-auto flex min-h-screen w-full max-w-[800px] flex-col overflow-clip border-x border-[#F3F4F6] bg-white"
+    <PageFrame ariaLabel="新建系列" testId="new-series-page">
+      <PageHeader title="新建系列" subtitle="吸收、沉淀、输出。" />
+
+      <form
+        aria-labelledby="new-series-title"
+        className="flex flex-col gap-3 p-6"
+        onSubmit={handleSubmit}
       >
-        <AuthTopBar />
-
-        <header className="flex h-[300px] shrink-0 flex-col justify-end overflow-clip p-6">
-          <h1 className="text-[48px] leading-none font-normal text-[#030712]">
-            新建系列
-          </h1>
-          <p className="mt-2 text-[24px] leading-none font-normal text-[#4A5565]">
-            吸收、沉淀、输出。
-          </p>
-        </header>
-
-        <form
-          aria-labelledby="new-series-title"
-          className="flex flex-col gap-3 p-6"
-          onSubmit={handleSubmit}
-        >
           <h2 id="new-series-title" className="sr-only">
             新建系列表单
           </h2>
@@ -132,10 +120,7 @@ export function NewSeriesPageView({
               新建
             </button>
           </div>
-        </form>
-
-        <div className="min-h-0 flex-1" />
-      </main>
-    </div>
+      </form>
+    </PageFrame>
   )
 }
