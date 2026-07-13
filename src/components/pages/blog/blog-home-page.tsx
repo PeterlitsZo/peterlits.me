@@ -12,7 +12,7 @@ function DraftBadge() {
   )
 }
 
-export function HomePageView({
+export function BlogHomePageView({
   blogSeries,
 }: {
   blogSeries: VisibleBlogSeriesListItem[]

@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { HomePageView } from '../../components/pages/blog/blog-home-page'
+import { BlogHomePageView } from '../../components/pages/blog/blog-home-page'
 import { getVisibleBlogSeries } from '../../lib/blog'
 
 export const Route = createFileRoute('/blogs/')({
@@ -11,5 +11,5 @@ export const Route = createFileRoute('/blogs/')({
 function BlogsIndex() {
   const blogSeries = Route.useLoaderData()
 
-  return <HomePageView blogSeries={blogSeries} />
+  return <BlogHomePageView blogSeries={blogSeries} />
 }

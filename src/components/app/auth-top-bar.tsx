@@ -1,6 +1,6 @@
 import { Link, useLocation } from '@tanstack/react-router'
 
-import { useAuthControls } from './site-shell'
+import { useAuthControls } from './auth-controls'
 
 function AvatarButton({
   displayName,

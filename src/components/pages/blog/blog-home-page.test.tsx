@@ -16,7 +16,7 @@ import {
 } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { HomePageView } from './blog-home-page'
+import { BlogHomePageView } from './blog-home-page'
 import { SiteShell } from '../../app/site-shell'
 
 beforeAll(() => {
@@ -49,7 +49,7 @@ function renderHomePage({
     getParentRoute: () => rootRoute,
     path: '/',
     component: () => (
-      <HomePageView
+      <BlogHomePageView
         blogSeries={[
           {
             slug: 'tcp',
@@ -115,7 +115,7 @@ function renderHomePage({
   render(<RouterProvider router={router} />)
 }
 
-describe('HomePageView', () => {
+describe('BlogHomePageView', () => {
   it('renders the figma-inspired heading and series list', async () => {
     renderHomePage()
 

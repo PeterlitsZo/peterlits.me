@@ -1,35 +1,12 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 
 import type { Viewer } from '../../lib/auth'
 import { login, logout as logoutRpc } from '../../lib/auth-rpc'
+import { AuthControlsContext } from './auth-controls'
+import type { AuthControlsContextValue } from './auth-controls'
 import { LoginModal } from './login-modal'
-
-type AuthControlsContextValue = {
-  errorMessage: string | null
-  isLoginModalOpen: boolean
-  isPending: boolean
-  isUserMenuOpen: boolean
-  viewer: Viewer | null
-  closeLoginModal: () => void
-  openLoginModal: () => void
-  submitLogin: (formData: FormData) => void
-  toggleUserMenu: () => void
-  logout: () => void
-}
-
-const AuthControlsContext = createContext<AuthControlsContextValue | null>(null)
-
-export function useAuthControls() {
-  const value = useContext(AuthControlsContext)
-
-  if (!value) {
-    throw new Error('AuthTopBar must be rendered inside SiteShell')
-  }
-
-  return value
-}
 
 export function SiteShell({
   children,
