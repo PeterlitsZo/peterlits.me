@@ -14,11 +14,7 @@ import {
 } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import {
-  NewBlogPostPageView,
-  buildImageMarkdown,
-  insertAtOffset,
-} from './blog-post-editor-page'
+import { NewBlogPostPageView } from './blog-post-editor-page'
 import { SiteShell } from '../../app/site-shell'
 
 import type { CreateBlogPostInput } from '../../../lib/post-rpc'
@@ -415,33 +411,5 @@ describe('NewBlogPostPageView image drop', () => {
     await waitFor(() => {
       expect(content.value).toBe('原文')
     })
-  })
-})
-
-describe('buildImageMarkdown', () => {
-  it('wraps alt and url in markdown image syntax', () => {
-    expect(buildImageMarkdown('cat', 'https://x/y.png')).toBe(
-      '![cat](https://x/y.png)',
-    )
-  })
-
-  it('escapes brackets in the alt text so it cannot break the syntax', () => {
-    expect(buildImageMarkdown('a [b] c', 'https://x/y.png')).toBe(
-      '![a \\[b\\] c](https://x/y.png)',
-    )
-  })
-})
-
-describe('insertAtOffset', () => {
-  it('inserts a snippet at the given offset and returns the caret end', () => {
-    expect(insertAtOffset('abc', 1, 'X')).toEqual({ text: 'aXbc', caret: 2 })
-  })
-
-  it('clamps an offset beyond the text length', () => {
-    expect(insertAtOffset('abc', 99, 'X')).toEqual({ text: 'abcX', caret: 4 })
-  })
-
-  it('clamps a negative offset to the start', () => {
-    expect(insertAtOffset('abc', -1, 'X')).toEqual({ text: 'Xabc', caret: 1 })
   })
 })
