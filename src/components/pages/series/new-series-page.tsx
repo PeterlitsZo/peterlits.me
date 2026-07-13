@@ -4,11 +4,14 @@ import { useNavigate } from '@tanstack/react-router'
 import type { CreateBlogSeriesInput } from '../../../lib/series-rpc'
 import { PageFrame } from '../../layout/page-frame'
 import { PageHeader } from '../../layout/page-header'
-
-type SubmitState =
-  | { kind: 'idle' }
-  | { kind: 'pending' }
-  | { kind: 'error'; message: string }
+import {
+  FormError,
+  fieldLabelClassName,
+  primarySubmitButtonClassName,
+  textAreaClassName,
+  textInputClassName,
+} from '../../ui/form'
+import type { SubmitState } from '../../ui/form'
 
 export function NewSeriesPageView({
   onSubmit,
@@ -55,71 +58,64 @@ export function NewSeriesPageView({
         className="flex flex-col gap-3 p-6"
         onSubmit={handleSubmit}
       >
-          <h2 id="new-series-title" className="sr-only">
-            新建系列表单
-          </h2>
+        <h2 id="new-series-title" className="sr-only">
+          新建系列表单
+        </h2>
 
-          <label className="flex w-full max-w-[400px] flex-col gap-1 text-[12px] leading-[normal] font-normal text-black">
-            <span>名称</span>
-            <input
-              aria-label="系列名称"
-              className="h-[37px] rounded-[8px] border border-[#E5E7EB] px-3 text-[16px] text-black outline-none transition-colors focus:border-[#D1D5DB]"
-              disabled={isPending}
-              name="title"
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              type="text"
-              value={title}
-            />
-          </label>
+        <label className={`w-full max-w-[400px] ${fieldLabelClassName}`}>
+          <span>名称</span>
+          <input
+            aria-label="系列名称"
+            className={textInputClassName}
+            disabled={isPending}
+            name="title"
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            type="text"
+            value={title}
+          />
+        </label>
 
-          <label className="flex w-full max-w-[400px] flex-col gap-1 text-[12px] leading-[normal] font-normal text-black">
-            <span>链接标识</span>
-            <input
-              aria-label="系列链接标识"
-              className="h-[37px] rounded-[8px] border border-[#E5E7EB] px-3 text-[16px] text-black outline-none transition-colors focus:border-[#D1D5DB]"
-              disabled={isPending}
-              name="slug"
-              onChange={(e) => setSlug(e.target.value)}
-              placeholder="如 tcp、tokio"
-              required
-              type="text"
-              value={slug}
-            />
-          </label>
+        <label className={`w-full max-w-[400px] ${fieldLabelClassName}`}>
+          <span>链接标识</span>
+          <input
+            aria-label="系列链接标识"
+            className={textInputClassName}
+            disabled={isPending}
+            name="slug"
+            onChange={(e) => setSlug(e.target.value)}
+            placeholder="如 tcp、tokio"
+            required
+            type="text"
+            value={slug}
+          />
+        </label>
 
-          <label className="flex w-full max-w-[600px] flex-col gap-1 text-[12px] leading-[normal] font-normal text-black">
-            <span>描述</span>
-            <textarea
-              aria-label="系列描述"
-              className="min-h-[37px] rounded-[8px] border border-[#E5E7EB] px-3 py-2 text-[16px] text-black outline-none transition-colors focus:border-[#D1D5DB]"
-              disabled={isPending}
-              maxLength={500}
-              name="description"
-              onChange={(e) => setDescription(e.target.value)}
-              rows={3}
-              value={description}
-            />
-          </label>
+        <label className={`w-full max-w-[600px] ${fieldLabelClassName}`}>
+          <span>描述</span>
+          <textarea
+            aria-label="系列描述"
+            className={`min-h-[37px] ${textAreaClassName}`}
+            disabled={isPending}
+            maxLength={500}
+            name="description"
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            value={description}
+          />
+        </label>
 
-          {state.kind === 'error' ? (
-            <p
-              role="alert"
-              className="m-0 text-[14px] leading-5 text-[#B42318]"
-            >
-              {state.message}
-            </p>
-          ) : null}
+        {state.kind === 'error' ? <FormError>{state.message}</FormError> : null}
 
-          <div className="flex w-full items-center justify-start overflow-clip pt-8">
-            <button
-              className="inline-flex h-9 items-center justify-center rounded-[4px] border-0 bg-[#059669] px-8 text-[16px] leading-[normal] font-normal text-white disabled:cursor-not-allowed disabled:opacity-70"
-              disabled={isPending}
-              type="submit"
-            >
-              新建
-            </button>
-          </div>
+        <div className="flex w-full items-center justify-start overflow-clip pt-8">
+          <button
+            className={primarySubmitButtonClassName}
+            disabled={isPending}
+            type="submit"
+          >
+            新建
+          </button>
+        </div>
       </form>
     </PageFrame>
   )

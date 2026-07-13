@@ -13,7 +13,9 @@ export function PageHeader({
     <header className="flex h-[300px] shrink-0 flex-col justify-end overflow-clip p-6">
       <h1 className={`leading-none font-normal ${titleClassName}`}>{title}</h1>
       {subtitle ? (
-        <p className={`mt-2 text-[24px] leading-none font-normal ${subtitleClassName}`}>
+        <p
+          className={`mt-2 text-[24px] leading-none font-normal ${subtitleClassName}`}
+        >
           {subtitle}
         </p>
       ) : null}

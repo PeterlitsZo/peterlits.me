@@ -1,5 +1,11 @@
 import { X } from 'lucide-react'
 
+import {
+  FormError,
+  primarySubmitButtonClassName,
+  textInputClassName,
+} from '../ui/form'
+
 export function LoginModal({
   errorMessage,
   isPending,
@@ -55,7 +61,7 @@ export function LoginModal({
             <label className="flex flex-col gap-1 text-[12px] leading-[normal] font-normal text-black">
               <span>用户名</span>
               <input
-                className="h-[37px] rounded-[8px] border border-[#E5E7EB] px-3 text-[16px] text-black outline-none transition-colors focus:border-[#D1D5DB]"
+                className={textInputClassName}
                 name="username"
                 required
                 type="text"
@@ -65,7 +71,7 @@ export function LoginModal({
             <label className="flex flex-col gap-1 text-[12px] leading-[normal] font-normal text-black">
               <span>密码</span>
               <input
-                className="h-[37px] rounded-[8px] border border-[#E5E7EB] px-3 text-[16px] text-black outline-none transition-colors focus:border-[#D1D5DB]"
+                className={textInputClassName}
                 name="password"
                 required
                 type="password"
@@ -73,15 +79,11 @@ export function LoginModal({
             </label>
           </div>
 
-          {errorMessage ? (
-            <p className="m-0 text-[14px] leading-5 text-[#B42318]">
-              {errorMessage}
-            </p>
-          ) : null}
+          {errorMessage ? <FormError>{errorMessage}</FormError> : null}
 
           <div className="flex h-9 w-full shrink-0 items-center justify-end overflow-clip">
             <button
-              className="inline-flex h-9 items-center justify-center rounded-[4px] border-0 bg-[#059669] px-8 text-[16px] leading-[normal] font-normal text-white disabled:cursor-not-allowed disabled:opacity-70"
+              className={primarySubmitButtonClassName}
               disabled={isPending}
               type="submit"
             >
