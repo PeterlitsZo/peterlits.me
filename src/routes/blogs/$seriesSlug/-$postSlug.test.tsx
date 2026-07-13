@@ -17,8 +17,6 @@ import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import {
   BlogPostChapterList,
-  BlogPostMarkdown,
-  BlogPostPageView,
   BlogPostSiblingNavigation,
   buildReorderPayloadFromFlatItems,
   canMoveFlatChapter,
@@ -26,8 +24,10 @@ import {
   flattenChapterTree,
   getChapterItems,
   getSiblingPosts,
-} from '../../../components/pages/blog/blog-post-page'
+} from '../../../components/domain/blog/blog-chapters'
+import { BlogPostMarkdown } from '../../../components/domain/blog/blog-post-markdown'
 import { SiteShell } from '../../../components/app/site-shell'
+import { BlogPostPageView } from '../../../components/pages/blog/blog-post-page'
 import { buildBlogPostChapterTree } from '../../../lib/blog-models'
 
 beforeAll(() => {
@@ -745,7 +745,9 @@ describe('BlogPostChapterList', () => {
         await screen.findByRole('link', { name: '添加子博客：起步' })
       ).getAttribute('href'),
     ).toBe('/blogs/tcp/new?parent=intro')
-    expect(await screen.findByRole('button', { name: '拖动排序：起步' })).toBeTruthy()
+    expect(
+      await screen.findByRole('button', { name: '拖动排序：起步' }),
+    ).toBeTruthy()
     expect(
       (await screen.findByRole('link', { name: '新建博客' })).getAttribute(
         'href',
