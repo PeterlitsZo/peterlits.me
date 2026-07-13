@@ -7,7 +7,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
-import { SiteShell } from '../components/site-shell'
+import { SiteShell } from '../components/app/site-shell'
 import { getViewer } from '../lib/auth-rpc'
 import appCss from '../styles.css?url'
 

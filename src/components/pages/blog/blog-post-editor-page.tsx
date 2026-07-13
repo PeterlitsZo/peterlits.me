@@ -5,7 +5,7 @@ import { useServerFn } from '@tanstack/react-start'
 import type { CreateBlogPostInput } from '../../../lib/post-rpc'
 import { uploadMedia } from '../../../lib/media-rpc'
 import type { UploadMediaResult } from '../../../lib/media-rpc'
-import { AuthTopBar } from '../../site-shell'
+import { AuthTopBar } from '../../app/auth-top-bar'
 
 type SubmitState =
   | { kind: 'idle' }

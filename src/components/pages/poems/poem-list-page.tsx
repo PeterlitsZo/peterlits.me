@@ -3,7 +3,7 @@ import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry'
 
 import type { VisiblePoemListItem } from '../../../lib/poem-models'
 import type { Viewer } from '../../../lib/auth'
-import { AuthTopBar } from '../../site-shell'
+import { AuthTopBar } from '../../app/auth-top-bar'
 
 export function PoemListPageView({
   poems,

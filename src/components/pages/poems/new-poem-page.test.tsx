@@ -9,7 +9,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { NewPoemPageView } from './new-poem-page'
-import { SiteShell } from '../../site-shell'
+import { SiteShell } from '../../app/site-shell'
 
 import type { CreatePoemInput } from '../../../lib/poem-rpc'
 

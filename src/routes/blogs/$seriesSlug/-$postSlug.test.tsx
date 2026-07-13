@@ -27,7 +27,7 @@ import {
   getChapterItems,
   getSiblingPosts,
 } from '../../../components/pages/blog/blog-post-page'
-import { SiteShell } from '../../../components/site-shell'
+import { SiteShell } from '../../../components/app/site-shell'
 import { buildBlogPostChapterTree } from '../../../lib/blog-models'
 
 beforeAll(() => {

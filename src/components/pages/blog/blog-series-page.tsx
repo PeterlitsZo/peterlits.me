@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router'
 
 import type { VisibleBlogSeriesListItem } from '../../../lib/blog-models'
 import type { Viewer } from '../../../lib/auth'
-import { AuthTopBar } from '../../site-shell'
+import { AuthTopBar } from '../../app/auth-top-bar'
 
 export function BlogSeriesPageView({
   series,

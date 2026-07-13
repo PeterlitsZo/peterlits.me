@@ -17,7 +17,7 @@ import {
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { HomePageView } from './blog-home-page'
-import { SiteShell } from '../../site-shell'
+import { SiteShell } from '../../app/site-shell'
 
 beforeAll(() => {
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {})

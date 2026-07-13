@@ -15,7 +15,7 @@ import type {
 import type { Viewer } from '../../../lib/auth'
 import remarkAdmonition from '../../../lib/remark-admonition'
 import remarkDefinitionList from '../../../lib/remark-definition-list'
-import { AuthTopBar } from '../../site-shell'
+import { AuthTopBar } from '../../app/auth-top-bar'
 
 type FlatChapter = Omit<VisibleBlogPostChapterNode, 'children'>
 

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 
 import type { CreateBlogSeriesInput } from '../../../lib/series-rpc'
-import { AuthTopBar } from '../../site-shell'
+import { AuthTopBar } from '../../app/auth-top-bar'
 
 type SubmitState =
   | { kind: 'idle' }

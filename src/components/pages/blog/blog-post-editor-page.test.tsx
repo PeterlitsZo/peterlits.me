@@ -19,7 +19,7 @@ import {
   buildImageMarkdown,
   insertAtOffset,
 } from './blog-post-editor-page'
-import { SiteShell } from '../../site-shell'
+import { SiteShell } from '../../app/site-shell'
 
 import type { CreateBlogPostInput } from '../../../lib/post-rpc'
 import type { UploadMediaResult } from '../../../lib/media-rpc'

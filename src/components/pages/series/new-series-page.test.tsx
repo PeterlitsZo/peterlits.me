@@ -9,7 +9,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { NewSeriesPageView } from './new-series-page'
-import { SiteShell } from '../../site-shell'
+import { SiteShell } from '../../app/site-shell'
 
 const ownerViewer = {
   id: 1,
