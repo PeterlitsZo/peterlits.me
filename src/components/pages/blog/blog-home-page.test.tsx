@@ -16,8 +16,8 @@ import {
 } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import { HomePageView } from './home-page'
-import { SiteShell } from './site-shell'
+import { HomePageView } from './blog-home-page'
+import { SiteShell } from '../../site-shell'
 
 beforeAll(() => {
   vi.spyOn(window, 'scrollTo').mockImplementation(() => {})

@@ -1,9 +1,9 @@
 import { BookOpen } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
 
-import type { VisibleBlogSeriesListItem } from '../lib/blog-models'
-import type { Viewer } from '../lib/auth'
-import { AuthTopBar } from './site-shell'
+import type { VisibleBlogSeriesListItem } from '../../../lib/blog-models'
+import type { Viewer } from '../../../lib/auth'
+import { AuthTopBar } from '../../site-shell'
 
 export function BlogSeriesPageView({
   series,

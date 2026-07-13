@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 
-import type { CreateBlogPostInput } from '../lib/post-rpc'
-import { uploadMedia } from '../lib/media-rpc'
-import type { UploadMediaResult } from '../lib/media-rpc'
-import { AuthTopBar } from './site-shell'
+import type { CreateBlogPostInput } from '../../../lib/post-rpc'
+import { uploadMedia } from '../../../lib/media-rpc'
+import type { UploadMediaResult } from '../../../lib/media-rpc'
+import { AuthTopBar } from '../../site-shell'
 
 type SubmitState =
   | { kind: 'idle' }

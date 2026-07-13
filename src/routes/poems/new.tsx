@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 
-import { NewPoemPageView } from '../../components/new-poem-page'
+import { NewPoemPageView } from '../../components/pages/poems/new-poem-page'
 import { getViewer } from '../../lib/auth-rpc'
 import { createPoem } from '../../lib/poem-rpc'
 

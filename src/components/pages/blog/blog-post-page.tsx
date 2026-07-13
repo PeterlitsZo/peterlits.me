@@ -11,11 +11,11 @@ import type {
   BlogSeriesStatus,
   VisibleBlogPostChapterNode,
   VisibleBlogPostPageData,
-} from '../lib/blog-models'
-import type { Viewer } from '../lib/auth'
-import remarkAdmonition from '../lib/remark-admonition'
-import remarkDefinitionList from '../lib/remark-definition-list'
-import { AuthTopBar } from './site-shell'
+} from '../../../lib/blog-models'
+import type { Viewer } from '../../../lib/auth'
+import remarkAdmonition from '../../../lib/remark-admonition'
+import remarkDefinitionList from '../../../lib/remark-definition-list'
+import { AuthTopBar } from '../../site-shell'
 
 type FlatChapter = Omit<VisibleBlogPostChapterNode, 'children'>
 

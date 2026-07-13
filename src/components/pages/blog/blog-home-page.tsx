@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router'
 
-import type { VisibleBlogSeriesListItem } from '../lib/blog-models'
-import { AuthTopBar } from './site-shell'
+import type { VisibleBlogSeriesListItem } from '../../../lib/blog-models'
+import { AuthTopBar } from '../../site-shell'
 
 function DraftBadge() {
   return (

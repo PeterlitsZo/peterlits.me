@@ -1,9 +1,9 @@
 import { Link } from '@tanstack/react-router'
 import Masonry, { ResponsiveMasonry } from 'react-responsive-masonry'
 
-import type { VisiblePoemListItem } from '../lib/poem-models'
-import type { Viewer } from '../lib/auth'
-import { AuthTopBar } from './site-shell'
+import type { VisiblePoemListItem } from '../../../lib/poem-models'
+import type { Viewer } from '../../../lib/auth'
+import { AuthTopBar } from '../../site-shell'
 
 export function PoemListPageView({
   poems,

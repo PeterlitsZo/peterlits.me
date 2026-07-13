@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 
-import { BlogPostPageView } from '../../../components/blog-post-page'
+import { BlogPostPageView } from '../../../components/pages/blog/blog-post-page'
 import { getViewer } from '../../../lib/auth-rpc'
 import { getVisibleBlogPost } from '../../../lib/blog'
 import { reorderBlogPosts } from '../../../lib/post-rpc'

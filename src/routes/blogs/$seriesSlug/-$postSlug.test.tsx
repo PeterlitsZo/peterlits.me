@@ -26,7 +26,7 @@ import {
   flattenChapterTree,
   getChapterItems,
   getSiblingPosts,
-} from '../../../components/blog-post-page'
+} from '../../../components/pages/blog/blog-post-page'
 import { SiteShell } from '../../../components/site-shell'
 import { buildBlogPostChapterTree } from '../../../lib/blog-models'
 

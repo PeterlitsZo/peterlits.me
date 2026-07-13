@@ -1,6 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 
-import { BlogSeriesPageView } from '../../../components/blog-series-page'
+import { BlogSeriesPageView } from '../../../components/pages/blog/blog-series-page'
 import { getViewer } from '../../../lib/auth-rpc'
 import { getVisibleBlogSeriesBySlug } from '../../../lib/blog'
 

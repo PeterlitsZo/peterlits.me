@@ -18,11 +18,11 @@ import {
   NewBlogPostPageView,
   buildImageMarkdown,
   insertAtOffset,
-} from './new-blog-post-page'
-import { SiteShell } from './site-shell'
+} from './blog-post-editor-page'
+import { SiteShell } from '../../site-shell'
 
-import type { CreateBlogPostInput } from '../lib/post-rpc'
-import type { UploadMediaResult } from '../lib/media-rpc'
+import type { CreateBlogPostInput } from '../../../lib/post-rpc'
+import type { UploadMediaResult } from '../../../lib/media-rpc'
 
 const ownerViewer = {
   id: 1,

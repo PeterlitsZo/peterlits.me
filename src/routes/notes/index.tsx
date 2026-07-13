@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { PlaceholderPageView } from '../../components/placeholder-page'
+import { PlaceholderPageView } from '../../components/pages/placeholder/placeholder-page'
 
 export const Route = createFileRoute('/notes/')({
   component: NotesIndex,

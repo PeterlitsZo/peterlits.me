@@ -9,9 +9,9 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
 import { NewPoemPageView } from './new-poem-page'
-import { SiteShell } from './site-shell'
+import { SiteShell } from '../../site-shell'
 
-import type { CreatePoemInput } from '../lib/poem-rpc'
+import type { CreatePoemInput } from '../../../lib/poem-rpc'
 
 const ownerViewer = {
   id: 1,

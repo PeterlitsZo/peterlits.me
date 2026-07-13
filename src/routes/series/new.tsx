@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 
-import { NewSeriesPageView } from '../../components/new-series-page'
+import { NewSeriesPageView } from '../../components/pages/series/new-series-page'
 import { getViewer } from '../../lib/auth-rpc'
 import { createBlogSeries } from '../../lib/series-rpc'
 

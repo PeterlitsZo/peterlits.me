@@ -1,4 +1,4 @@
-import { AuthTopBar } from './site-shell'
+import { AuthTopBar } from '../../site-shell'
 
 export function PlaceholderPageView({ title }: { title: string }) {
   return (

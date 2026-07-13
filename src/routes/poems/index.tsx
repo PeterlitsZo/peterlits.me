@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 
-import { PoemListPageView } from '../../components/poem-list-page'
+import { PoemListPageView } from '../../components/pages/poems/poem-list-page'
 import { getViewer } from '../../lib/auth-rpc'
 import { getVisiblePoems } from '../../lib/poem-rpc'
 
