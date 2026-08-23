@@ -1,0 +1,7 @@
+.ManagementControls {
+  display: none;
+}
+
+.Row:hover .ManagementControls {
+  display: flex;
+}

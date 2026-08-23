@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { BadgePlus, GripVertical, Pencil } from 'lucide-react'
+import { clsx } from 'clsx'
 
 import type {
   BlogPostStatus,
@@ -8,6 +9,8 @@ import type {
   VisibleBlogPostChapterNode,
   VisibleBlogPostPageData,
 } from '../../../lib/blog-models'
+
+import styles from './blog-chapters.module.css'
 
 type FlatChapter = Omit<VisibleBlogPostChapterNode, 'children'>
 
@@ -253,6 +256,7 @@ export function BlogPostChapterList({
 }) {
   const [draggedId, setDraggedId] = useState<number | null>(null)
   const [reorderError, setReorderError] = useState<string | null>(null)
+  const navigate = useNavigate()
   const editableItems = useMemo(
     () => flattenEditableChapterTree(chapters),
     [chapters],
@@ -260,7 +264,7 @@ export function BlogPostChapterList({
   const numberBaseClassName =
     'flex size-[22px] shrink-0 items-center justify-center rounded-[8px] text-[13px] leading-none font-normal tracking-[-0.65px] text-white'
   const titleBaseClassName =
-    'shrink-0 whitespace-nowrap text-[20px] leading-[24px] font-normal'
+    'flex-1 shrink-0 whitespace-nowrap text-[20px] leading-[24px] font-normal'
 
   return (
     <div className="flex w-full max-w-[500px] flex-col items-start gap-1.5 overflow-hidden rounded-[12px] bg-[#F9FAFB] p-3">
@@ -330,13 +334,20 @@ export function BlogPostChapterList({
           }
         }
 
+        const managementControlClassName = `flex size-6 shrink-0 items-center justify-center overflow-clip rounded-sm text-[#4B5563] no-underline hover:bg-[#E5E7EB]`
+
+        // The management controls.
         const managementControls =
           item.kind === 'post' && isOwner ? (
-            <>
-              <div className="min-w-0 flex-1" />
+            <div
+              className={clsx(
+                `flex items-center gap-1.5`,
+                styles.ManagementControls,
+              )}
+            >
               <Link
                 aria-label={`更新博客：${item.title}`}
-                className="flex size-6 shrink-0 items-center justify-center overflow-clip rounded-[4px] text-[#4B5563] no-underline hover:bg-[#E5E7EB]"
+                className={managementControlClassName}
                 params={{ postSlug: item.slug, seriesSlug }}
                 to="/blogs/$seriesSlug/$postSlug/edit"
               >
@@ -344,7 +355,7 @@ export function BlogPostChapterList({
               </Link>
               <Link
                 aria-label={`添加子博客：${item.title}`}
-                className="flex size-6 shrink-0 items-center justify-center overflow-clip rounded-[4px] text-[#4B5563] no-underline hover:bg-[#F9FAFB]"
+                className={managementControlClassName}
                 search={{ parent: item.slug }}
                 params={{ seriesSlug }}
                 to="/blogs/$seriesSlug/new"
@@ -364,7 +375,7 @@ export function BlogPostChapterList({
                   event.dataTransfer.setData('text/plain', String(item.id))
                 }}
                 onDragEnd={() => setDraggedId(null)}
-                className="flex size-6 shrink-0 items-center justify-center overflow-clip rounded-[4px] border-0 bg-transparent p-0 text-[#4B5563] hover:bg-[#E5E7EB]"
+                className={clsx(managementControlClassName, 'cursor-grab')}
                 type="button"
               >
                 <GripVertical
@@ -373,7 +384,7 @@ export function BlogPostChapterList({
                   strokeWidth={2}
                 />
               </button>
-            </>
+            </div>
           ) : null
 
         const titleContent =
@@ -389,6 +400,32 @@ export function BlogPostChapterList({
               未完待续......
             </span>
           )
+
+        const chapterContent = (
+          <>
+            <span className={`${numberBaseClassName} ${numberClassName}`}>
+              {item.label}
+            </span>
+            {titleContent}
+          </>
+        )
+        const chapterTargetClassName = clsx(
+          'flex min-w-0 flex-1 items-center gap-1.5 overflow-hidden rounded-[6px] py-1.5 pr-1.5',
+          item.kind === 'post' &&
+            !item.isCurrent &&
+            'cursor-pointer hover:bg-[#F3F4F6]',
+        )
+
+        function navigateToChapter() {
+          if (item.kind !== 'post' || item.isCurrent) {
+            return
+          }
+
+          void navigate({
+            params: { postSlug: item.slug, seriesSlug },
+            to: '/blogs/$seriesSlug/$postSlug',
+          })
+        }
 
         return (
           <div
@@ -407,33 +444,36 @@ export function BlogPostChapterList({
                 event.clientX > 24 ? item.depth + 1 : item.depth
               void handleDrop(targetDepth)
             }}
-            className={`flex w-full items-center gap-1.5 overflow-hidden rounded-[6px] py-1.5 pr-1.5 ${item.kind === 'post' && !item.isCurrent ? 'hover:bg-[#F3F4F6]' : ''}`}
+            className={clsx(
+              `flex w-full items-stretch gap-1.5 overflow-hidden`,
+              styles.Row,
+            )}
             key={item.kind === 'post' ? item.slug : 'pending'}
-            style={{ paddingLeft }}
           >
             {item.kind === 'post' && !item.isCurrent ? (
-              <Link
-                className="flex min-w-0 items-center gap-1.5 no-underline"
-                params={{
-                  postSlug: item.slug,
-                  seriesSlug,
+              <div
+                aria-label={`${item.label}${item.title}`}
+                className={chapterTargetClassName}
+                onClick={navigateToChapter}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    navigateToChapter()
+                  }
                 }}
-                to="/blogs/$seriesSlug/$postSlug"
+                role="link"
+                style={{ paddingLeft }}
+                tabIndex={0}
               >
-                <span className={`${numberBaseClassName} ${numberClassName}`}>
-                  {item.label}
-                </span>
-                {titleContent}
-              </Link>
+                {chapterContent}
+                {managementControls}
+              </div>
             ) : (
-              <>
-                <span className={`${numberBaseClassName} ${numberClassName}`}>
-                  {item.label}
-                </span>
-                {titleContent}
-              </>
+              <div className={chapterTargetClassName} style={{ paddingLeft }}>
+                {chapterContent}
+                {managementControls}
+              </div>
             )}
-            {managementControls}
           </div>
         )
       })}

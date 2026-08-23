@@ -12,6 +12,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
 } from '@testing-library/react'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
@@ -73,7 +74,7 @@ function renderWithRouter(
     }),
   })
 
-  return render(<RouterProvider router={router} />)
+  return { router, ...render(<RouterProvider router={router} />) }
 }
 
 function renderBlogPostPage() {
@@ -628,14 +629,59 @@ describe('BlogPostChapterList', () => {
     ))
 
     expect((await screen.findByText('起步')).closest('div')).toBeTruthy()
-    expect(
-      (
-        await screen.findByRole('link', {
-          name: '2.1三次握手',
-        })
-      ).getAttribute('href'),
-    ).toBe('/blogs/tcp/handshake')
+    const handshakeTarget = await screen.findByRole('link', {
+      name: '2.1三次握手',
+    })
+
+    expect(handshakeTarget.getAttribute('href')).toBeNull()
+    expect(handshakeTarget.getAttribute('tabindex')).toBe('0')
+    expect(handshakeTarget.className).toContain('hover:bg-[#F3F4F6]')
     expect(await screen.findByText('未完待续......')).toBeTruthy()
+  })
+
+  it.each(['Enter', ' '])('navigates a chapter on %s', async (key) => {
+    const { router } = renderWithRouter(() => (
+      <BlogPostChapterList
+        chapterItems={[
+          {
+            kind: 'post',
+            id: 1,
+            slug: 'intro',
+            title: '起步',
+            label: '1',
+            depth: 0,
+            isCurrent: true,
+            status: 'published',
+          },
+          {
+            kind: 'post',
+            id: 2,
+            slug: 'handshake',
+            title: '三次握手',
+            label: '2',
+            depth: 0,
+            isCurrent: false,
+            status: 'published',
+          },
+        ]}
+        seriesSlug="tcp"
+      />
+    ))
+
+    const handshakeTarget = await screen.findByRole('link', {
+      name: '2三次握手',
+    })
+
+    fireEvent.click(handshakeTarget)
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/blogs/tcp/handshake')
+    })
+
+    await router.navigate({ to: '/blogs/tcp/intro' })
+    fireEvent.keyDown(handshakeTarget, { key })
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/blogs/tcp/handshake')
+    })
   })
 
   it('uses Figma chapter selector spacing for nested posts', async () => {
@@ -680,11 +726,13 @@ describe('BlogPostChapterList', () => {
     const currentNumber = await screen.findByText('1')
     const currentRow = currentNumber.closest('div')
     const nestedRow = await screen.findByTestId('chapter-row-connection')
+    const nestedTarget = nestedRow.querySelector('[role="link"]')
 
     expect(currentNumber.className).toContain('size-[22px]')
     expect(currentNumber.className).toContain('rounded-[8px]')
     expect(currentRow?.style.paddingLeft).toBe('6px')
-    expect(nestedRow.style.paddingLeft).toBe('32px')
+    expect(nestedTarget).toBeTruthy()
+    expect((nestedTarget as HTMLElement).style.paddingLeft).toBe('32px')
   })
 
   it('uses the Figma draft tag style', async () => {
