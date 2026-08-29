@@ -2,6 +2,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router'
 import { useServerFn } from '@tanstack/react-start'
 
 import { BlogPostPageView } from '../../../components/pages/blog/blog-post-page'
+import { useBlogPostViewRecorder } from '../../../components/domain/blog/use-blog-post-view-recorder'
 import { getViewer } from '../../../lib/auth-rpc'
 import { getVisibleBlogPost } from '../../../lib/blog'
 import { reorderBlogPosts } from '../../../lib/post-rpc'
@@ -26,6 +27,10 @@ function BlogPostPage() {
   const page = Route.useLoaderData()
   const { viewer } = Route.useRouteContext()
   const reorderPosts = useServerFn(reorderBlogPosts)
+  useBlogPostViewRecorder({
+    seriesSlug: page.series_slug,
+    postSlug: page.post_slug,
+  })
 
   return (
     <BlogPostPageView
